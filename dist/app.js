@@ -393,8 +393,10 @@ async function refreshSharedAnswers() {
   if (saved.circleIds.length && !saved.circleIds.includes(activeCircleId)) return;
   const answers = await window.sidequestBackend.loadCircleAnswers(activeMode, todayKey);
   answers.filter((answer) => !answer.mine).forEach((answer, index) => {
+    if (answerList.querySelector(`[data-answer-id="${CSS.escape(answer.id)}"]`)) return;
     const item = document.createElement("article");
     item.className = "friend-answer";
+    item.dataset.answerId = answer.id;
     const avatar = document.createElement("span");
     avatar.className = `face ${["face-yellow", "face-blue", "face-pink"][index % 3]}`;
     avatar.textContent = answer.name.charAt(0).toUpperCase();
@@ -619,6 +621,7 @@ function syncCircleState() {
     ? "Choose one or more circles below."
     : "Create a circle to unlock this.";
   syncCirclePicker();
+  if (getSaved(activeMode).privacy === "friends") renderSharedCircleLinks();
 }
 
 function syncCirclePicker() {

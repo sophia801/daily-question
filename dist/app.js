@@ -533,6 +533,34 @@ function showToast(message) {
   window.setTimeout(() => toast.classList.remove("visible"), 2400);
 }
 
+async function shareDailyResult() {
+  const modeName = activeMode === "reflective" ? "reflective" : "fun";
+  const shareUrl = `${window.location.origin}${window.location.pathname}#today`;
+  const message = [
+    `I answered today's ${modeName} question on sparKIT:`,
+    `“${dailyModes[activeMode].question}”`,
+    `My streak: ${personalStreakCount.textContent}`,
+    "Answer yours:",
+  ].join("\n");
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "sparKIT daily question", text: message, url: shareUrl });
+      return;
+    } catch (error) {
+      if (error.name === "AbortError") return;
+    }
+  }
+
+  const clipboardMessage = `${message}\n${shareUrl}`;
+  try {
+    await navigator.clipboard.writeText(clipboardMessage);
+    showToast("Result copied. Paste it into your group chat.");
+  } catch {
+    window.prompt("Copy your sparKIT result", clipboardMessage);
+  }
+}
+
 function makeMessage(message) {
   const item = document.createElement("article");
   item.className = `room-message${message.author === "You" ? " mine" : ""}`;
@@ -887,6 +915,10 @@ function renderRoute() {
 
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => renderMode(button.dataset.mode));
+});
+
+document.querySelectorAll("[data-share-result]").forEach((button) => {
+  button.addEventListener("click", shareDailyResult);
 });
 
 circleModeButtons.forEach((button) => {

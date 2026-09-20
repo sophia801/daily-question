@@ -133,7 +133,10 @@
                 <strong>Your answer</strong>
                 <p id="private-answer-text"></p>
               </div>
-              <button class="primary-button" id="share-private-answer" type="button">Share with circles <span aria-hidden="true">→</span></button>
+              <div class="answer-actions">
+                <button class="primary-button" data-share-result type="button">Share result <span aria-hidden="true">↗</span></button>
+                <button class="text-button" id="share-private-answer" type="button">Share with circles</button>
+              </div>
             </div>
 
             <div class="revealed-state" id="revealed-state" hidden>
@@ -153,6 +156,7 @@
               </div>
 
               <div class="answer-actions">
+                <button class="primary-button" data-share-result type="button">Share result <span aria-hidden="true">↗</span></button>
                 <button class="text-button" id="refresh-circle-answers" type="button">Refresh answers</button>
               </div>
               <div class="shared-circle-links" id="shared-circle-links" aria-label="Open a shared circle chat"></div>

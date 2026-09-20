@@ -194,23 +194,49 @@
     return { id: circleId, inviteCode };
   }
 
-  async function saveAnswer(mode, body, visibility, question, followUp, answerDate) {
+  async function saveAnswer(mode, body, visibility, question, followUp, answerDate, circleIds = []) {
     if (!configured) return null;
-    const { data, error } = await client.rpc("save_daily_answer", {
+    const targetCircles = visibility === "friends" ? [...new Set(circleIds.length ? circleIds : [circleId].filter(Boolean))] : [];
+    let { data, error } = await client.rpc("save_daily_answer_to_circles", {
       answer_date: answerDate,
       answer_mode: mode,
       question_body: question,
       question_follow_up: followUp,
       answer_body: body,
       answer_visibility: visibility,
-      target_circle: visibility === "friends" ? circleId : null,
+      target_circles: targetCircles,
     });
+    if (error?.code === "PGRST202" && targetCircles.length <= 1) {
+      ({ data, error } = await client.rpc("save_daily_answer", {
+        answer_date: answerDate,
+        answer_mode: mode,
+        question_body: question,
+        question_follow_up: followUp,
+        answer_body: body,
+        answer_visibility: visibility,
+        target_circle: visibility === "friends" ? targetCircles[0] : null,
+      }));
+    }
     if (error) throw error;
     return data;
   }
 
   async function loadCircleAnswers(mode, answerDate) {
     if (!configured || !circleId) return [];
+    const { data: sharedAnswers, error: sharedError } = await client.rpc("load_circle_answers", {
+      target_circle: circleId,
+      answer_mode: mode,
+      answer_date: answerDate,
+    });
+    if (!sharedError) {
+      return sharedAnswers.map((answer) => ({
+        id: answer.id,
+        body: answer.body,
+        mine: answer.mine,
+        name: answer.mine ? "You" : (answer.display_name || answer.username || "Friend"),
+      }));
+    }
+    if (sharedError.code !== "PGRST202") throw sharedError;
     const { data: question, error: questionError } = await client.from("questions")
       .select("id").eq("question_date", answerDate).eq("mode", mode).maybeSingle();
     if (questionError) throw questionError;

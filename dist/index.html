@@ -118,11 +118,12 @@
                   <span><strong>Just me</strong><small>Keep this to myself.</small></span>
                 </label>
               </fieldset>
-              <div class="answer-circle-choice" id="answer-circle-choice" hidden>
-                <label for="answer-circle-select">Share with</label>
-                <select id="answer-circle-select" name="circle" aria-describedby="answer-circle-help"></select>
-                <small id="answer-circle-help">Friends in this circle unlock your answer after submitting their own.</small>
-              </div>
+              <fieldset class="answer-circle-choice" id="answer-circle-choice" hidden>
+                <legend>Share with</legend>
+                <div class="answer-circle-options" id="answer-circle-options"></div>
+                <small id="answer-circle-help">Friends in each selected circle unlock your answer after sharing their own there.</small>
+                <button class="secondary-button update-sharing-button" id="update-shared-circles" type="button" hidden>Update shared circles</button>
+              </fieldset>
             </form>
 
             <p class="privacy-note">
@@ -197,9 +198,9 @@
               </div>
 
               <div class="answer-actions">
-                <button class="primary-button" id="open-circle-chat" type="button">Open circle chat <span aria-hidden="true">→</span></button>
                 <button class="text-button" id="refresh-circle-answers" type="button">Refresh answers</button>
               </div>
+              <div class="shared-circle-links" id="shared-circle-links" aria-label="Open a shared circle chat"></div>
 
               <div class="conversation-spark">
                 <span aria-hidden="true">↳</span>

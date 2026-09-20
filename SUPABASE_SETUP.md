@@ -14,7 +14,8 @@ mode until the two public Supabase values are configured.
    `supabase/migrations/003_fix_circle_codes.sql`, then
    `supabase/migrations/004_shared_circles_and_answers.sql`, then
    `supabase/migrations/005_circle_daily_stats.sql`, then
-   `supabase/migrations/006_fix_answer_saving.sql`.
+   `supabase/migrations/006_fix_answer_saving.sql`, then
+   `supabase/migrations/007_multi_circle_answer_sharing.sql`.
 4. Open **Project Settings > API** and copy the project URL and publishable
    `anon` key. Never use the `service_role` key in this website.
 

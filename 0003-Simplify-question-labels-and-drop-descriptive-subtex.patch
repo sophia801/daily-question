@@ -1,0 +1,110 @@
+From 7d2a5fd746c085a7b17101b9f181374603290498 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 20 Sep 2026 02:56:42 +0000
+Subject: [PATCH 3/3] Simplify question labels and drop descriptive subtext
+
+Collapse the mode buttons and daily label to just "Reflective" /
+"Fun", and remove the descriptive sentence under the question
+heading.
+---
+ dist/app.js     | 8 ++------
+ dist/index.html | 8 +++-----
+ dist/styles.css | 8 --------
+ 3 files changed, 5 insertions(+), 19 deletions(-)
+
+diff --git a/dist/app.js b/dist/app.js
+index 466a55d..e177ece 100644
+--- a/dist/app.js
++++ b/dist/app.js
+@@ -14,7 +14,6 @@ const circlePrivacyTitle = document.querySelector("#circle-privacy-title");
+ const circlePrivacyHint = document.querySelector("#circle-privacy-hint");
+ const questionHeading = document.querySelector("#question-heading");
+ const dailyLabel = document.querySelector("#daily-label");
+-const worldNote = document.querySelector("#world-note");
+ const dailyDate = document.querySelector("#daily-date");
+ const personalStreakMeter = document.querySelector("#personal-streak-meter");
+ const groupStreakMeter = document.querySelector("#group-streak-meter");
+@@ -134,18 +133,16 @@ const funToday = questionForToday(funQuestions, "fun");
+ const dailyModes = {
+   fun: {
+     shortLabel: "Fun question",
+-    label: "Today's worldwide fun question",
++    label: "Fun",
+     question: funToday.question,
+-    note: "A playful prompt everyone gets today. Go with your first instinct.",
+     answerLabel: "Your answer",
+     placeholder: "The more specific, the better...",
+     followUp: funToday.followUp,
+   },
+   reflective: {
+     shortLabel: "Reflective question",
+-    label: "Today's worldwide reflective question",
++    label: "Reflective",
+     question: reflectiveToday.question,
+-    note: "Take a moment with it. A specific, honest answer is enough.",
+     answerLabel: "Your reflection",
+     placeholder: "A person, a habit, a place, a tiny moment...",
+     followUp: reflectiveToday.followUp,
+@@ -332,7 +329,6 @@ function renderMode(mode) {
+ 
+   dailyLabel.textContent = content.label;
+   questionHeading.textContent = content.question;
+-  worldNote.textContent = content.note;
+   answerLabel.textContent = content.answerLabel;
+   answerInput.placeholder = content.placeholder;
+   conversationPrompt.textContent = content.followUp;
+diff --git a/dist/index.html b/dist/index.html
+index c370fb7..16b822a 100644
+--- a/dist/index.html
++++ b/dist/index.html
+@@ -48,16 +48,16 @@
+             <div class="daily-choice" aria-label="Today's questions">
+               <button class="choice-button active" type="button" data-mode="reflective" aria-pressed="true">
+                 <span class="choice-icon" aria-hidden="true">✦</span>
+-                <span><strong>Reflective Prompt</strong><small>Start here</small></span>
++                <span><strong>Reflective</strong></span>
+               </button>
+               <button class="choice-button" type="button" data-mode="fun" aria-pressed="false">
+                 <span class="choice-icon" aria-hidden="true">☺</span>
+-                <span><strong>Fun Question</strong><small>Quick and playful →</small></span>
++                <span><strong>Fun</strong></span>
+               </button>
+             </div>
+ 
+             <div class="question-meta">
+-              <span id="daily-label">Today's worldwide reflective question</span>
++              <span id="daily-label">Reflective</span>
+               <span id="daily-date">September 19</span>
+             </div>
+ 
+@@ -65,8 +65,6 @@
+               What is something small that has made life feel lighter lately?
+             </h1>
+ 
+-            <p class="world-note" id="world-note">A quieter question for noticing what is already helping, even a little.</p>
+-
+             <div class="status-row" id="today-circle-status" aria-label="Group participation" hidden>
+               <div class="response-faces" aria-hidden="true">
+                 <span class="face face-yellow">J</span>
+diff --git a/dist/styles.css b/dist/styles.css
+index 40b6b7b..7bccfaa 100644
+--- a/dist/styles.css
++++ b/dist/styles.css
+@@ -220,14 +220,6 @@ h1 {
+   letter-spacing: 0;
+ }
+ 
+-.world-note {
+-  max-width: 620px;
+-  margin: 22px 0 0;
+-  color: #5f6863;
+-  font-size: 1rem;
+-  line-height: 1.55;
+-}
+-
+ .status-row {
+   justify-content: flex-start;
+   margin: 34px 0;
+-- 
+2.43.0
+

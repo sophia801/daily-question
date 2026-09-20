@@ -5,6 +5,7 @@ const answerCount = document.querySelector("#answer-count");
 const lockedState = document.querySelector("#locked-state");
 const privateState = document.querySelector("#private-state");
 const privateAnswerText = document.querySelector("#private-answer-text");
+const sharePrivateAnswer = document.querySelector("#share-private-answer");
 const revealedState = document.querySelector("#revealed-state");
 const yourAnswer = document.querySelector("#your-answer");
 const privacyInputs = document.querySelectorAll('input[name="privacy"]');
@@ -894,6 +895,23 @@ refreshCircleAnswers.addEventListener("click", async () => {
   }
 });
 
+sharePrivateAnswer.addEventListener("click", () => {
+  if (!circleList.children.length) {
+    window.location.hash = "#circles";
+    document.querySelector("#new-circle-button").click();
+    return;
+  }
+  form.querySelector('input[value="friends"]').checked = true;
+  answerCircleChoice.hidden = false;
+  syncCirclePicker();
+  const preferredCircle = answerCircleOptions.querySelector(`input[value="${CSS.escape(activeCircleId)}"]`)
+    || answerCircleOptions.querySelector('input[type="checkbox"]');
+  if (preferredCircle) preferredCircle.checked = true;
+  updateSharedCircles.hidden = false;
+  updateSharedCircles.textContent = "Share with selected circles";
+  answerCircleChoice.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
 updateSharedCircles.addEventListener("click", async () => {
   const circleIds = getSelectedCircleIds();
   if (!circleIds.length) {
@@ -914,11 +932,13 @@ updateSharedCircles.addEventListener("click", async () => {
         circleIds,
       );
     }
+    localStorage.setItem(storageKey("privacy"), "friends");
     localStorage.setItem(storageKey("circles"), JSON.stringify(circleIds));
     localStorage.setItem(storageKey("circle"), circleIds[0]);
-    privacyResult.textContent = circleShareLabel("friends");
-    renderSharedCircleLinks();
     saveTodayToHistory();
+    showCompleted(saved.answer, "friends");
+    syncCirclePicker();
+    updateSharedCircles.textContent = "Update shared circles";
     showToast(`Shared with ${circleIds.length} ${circleIds.length === 1 ? "circle" : "circles"}`);
   } catch (error) {
     console.error("Circle sharing update failed", error);

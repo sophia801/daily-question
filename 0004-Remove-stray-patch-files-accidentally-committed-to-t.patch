@@ -1,0 +1,295 @@
+From 587f189126c1424dd79ff7695560aa31cfd56012 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 20 Sep 2026 03:01:23 +0000
+Subject: [PATCH 4/4] Remove stray patch files accidentally committed to the
+ repo
+
+These were meant to be applied with git am, not committed as
+literal files.
+---
+ 0001-share-to-circle.patch                    |  70 -----------
+ ...emove-gray-subtext-from-streak-cards.patch |  77 ------------
+ ...n-labels-and-drop-descriptive-subtex.patch | 110 ------------------
+ 3 files changed, 257 deletions(-)
+ delete mode 100644 0001-share-to-circle.patch
+ delete mode 100644 0002-Remove-gray-subtext-from-streak-cards.patch
+ delete mode 100644 0003-Simplify-question-labels-and-drop-descriptive-subtex.patch
+
+diff --git a/0001-share-to-circle.patch b/0001-share-to-circle.patch
+deleted file mode 100644
+index 6a2b0a6..0000000
+--- a/0001-share-to-circle.patch
++++ /dev/null
+@@ -1,70 +0,0 @@
+-From 4b851d1131d48215a1e11d421af60a9738312cc3 Mon Sep 17 00:00:00 2001
+-From: Claude <noreply@anthropic.com>
+-Date: Sun, 20 Sep 2026 02:39:30 +0000
+-Subject: [PATCH] Replace "My circle" with "Share to [circle name]" everywhere
+-
+-The answer form's privacy option already showed the active circle's
+-name in some cases; extend that to the revealed-answer summary and
+-history badges via a shared circleShareLabel() helper, so the
+-generic "My circle" label only appears as a fallback when no circle
+-is selected.
+----
+- dist/app.js | 14 +++++++++-----
+- 1 file changed, 9 insertions(+), 5 deletions(-)
+-
+-diff --git a/dist/app.js b/dist/app.js
+-index e9c786b..311063d 100644
+---- a/dist/app.js
+-+++ b/dist/app.js
+-@@ -49,7 +49,6 @@ const profileUsername = document.querySelector("#profile-username");
+- const friendSetupNote = document.querySelector("#friend-setup-note");
+- 
+- const privacyLabels = {
+--  friends: "My circle",
+-   private: "Just me",
+- };
+- 
+-@@ -58,6 +57,12 @@ const privacyClasses = {
+-   private: "private",
+- };
+- 
+-+function circleShareLabel(privacy) {
+-+  if (privacy !== "friends") return privacyLabels[privacy];
+-+  const activeItem = activeCircleId ? circleList.querySelector(`[data-circle="${activeCircleId}"]`) : null;
+-+  return activeItem ? `Share to ${activeItem.dataset.name}` : "My circle";
+-+}
+-+
+- const reflectiveQuestions = [
+-   { question: "If you met yourself from five years ago, what would you tell them?", followUp: "What would your younger self be proud to see?" },
+-   { question: "Would you rather be good and misunderstood, or admired for someone you are not?", followUp: "How much should other people's perception matter?" },
+-@@ -314,7 +319,7 @@ function showCompleted(answer, privacy) {
+- 
+-   answerCount.textContent = "3 of 4";
+-   yourAnswer.textContent = answer;
+--  privacyResult.textContent = privacyLabels[privacy];
+-+  privacyResult.textContent = circleShareLabel(privacy);
+-   privateState.hidden = true;
+-   revealedState.hidden = false;
+- }
+-@@ -480,8 +485,7 @@ function syncCircleState() {
+-   document.querySelector("#today-room").hidden = !hasCircles;
+-   const circlePrivacy = form.querySelector('input[value="friends"]');
+-   circlePrivacy.disabled = !hasCircles || answerInput.disabled;
+--  const activeItem = activeCircleId ? circleList.querySelector(`[data-circle="${activeCircleId}"]`) : null;
+--  circlePrivacyTitle.textContent = activeItem ? `Share to ${activeItem.dataset.name}` : "My circle";
+-+  circlePrivacyTitle.textContent = circleShareLabel("friends");
+-   circlePrivacyHint.textContent = hasCircles
+-     ? "Mutual reveal with this friend group."
+-     : "Create a circle to unlock this.";
+-@@ -585,7 +589,7 @@ function renderHistory(date) {
+-       badges.className = "history-badges";
+-       badges.append(
+-         badge(dailyModes[record.mode].shortLabel, record.mode),
+--        badge(privacyLabels[record.privacy], privacyClasses[record.privacy]),
+-+        badge(circleShareLabel(record.privacy), privacyClasses[record.privacy]),
+-       );
+-       const question = document.createElement("h2");
+-       question.textContent = record.question;
+--- 
+-2.43.0
+-
+diff --git a/0002-Remove-gray-subtext-from-streak-cards.patch b/0002-Remove-gray-subtext-from-streak-cards.patch
+deleted file mode 100644
+index 610f1dd..0000000
+--- a/0002-Remove-gray-subtext-from-streak-cards.patch
++++ /dev/null
+@@ -1,77 +0,0 @@
+-From fb3655147e5198c985f0dc8e9ab8c2386e5d81de Mon Sep 17 00:00:00 2001
+-From: Claude <noreply@anthropic.com>
+-Date: Sun, 20 Sep 2026 02:48:29 +0000
+-Subject: [PATCH 2/2] Remove gray subtext from streak cards
+-
+-Drop the descriptive sentence under the personal and circle streak
+-meters, keeping just the day count and progress bar.
+----
+- dist/app.js     | 9 ---------
+- dist/index.html | 2 --
+- dist/styles.css | 1 +
+- 3 files changed, 1 insertion(+), 11 deletions(-)
+-
+-diff --git a/dist/app.js b/dist/app.js
+-index 311063d..466a55d 100644
+---- a/dist/app.js
+-+++ b/dist/app.js
+-@@ -16,9 +16,7 @@ const questionHeading = document.querySelector("#question-heading");
+- const dailyLabel = document.querySelector("#daily-label");
+- const worldNote = document.querySelector("#world-note");
+- const dailyDate = document.querySelector("#daily-date");
+--const personalStreakStatus = document.querySelector("#personal-streak-status");
+- const personalStreakMeter = document.querySelector("#personal-streak-meter");
+--const groupStreakStatus = document.querySelector("#group-streak-status");
+- const groupStreakMeter = document.querySelector("#group-streak-meter");
+- const circleStreakCopy = document.querySelector("#circle-streak-copy");
+- const circleStreakCount = document.querySelector("#circle-streak-count");
+-@@ -267,14 +265,7 @@ function renderStreaks() {
+-   const threshold = Math.ceil(groupTotal * 0.5);
+-   const streakSecured = groupAnswers >= threshold;
+- 
+--  personalStreakStatus.textContent = completed
+--    ? "Kept for today. One answer was enough."
+--    : "Answer either question to keep it going.";
+-   personalStreakMeter.style.width = completed ? "100%" : "72%";
+--
+--  groupStreakStatus.textContent = streakSecured
+--    ? `Streak secured · ${groupAnswers} of ${groupTotal} answered today.`
+--    : `${groupAnswers} of ${threshold} needed to secure the streak.`;
+-   groupStreakMeter.style.width = `${(groupAnswers / groupTotal) * 100}%`;
+-   circleStreakCopy.textContent = streakSecured
+-     ? "Half the circle answered, so today's streak is safe. Either question counts."
+-diff --git a/dist/index.html b/dist/index.html
+-index f3603a8..c370fb7 100644
+---- a/dist/index.html
+-+++ b/dist/index.html
+-@@ -83,7 +83,6 @@
+-                   <span class="streak-kicker">Personal streak</span>
+-                   <strong>12 days</strong>
+-                 </div>
+--                <p id="personal-streak-status">Answer one of the questions to keep it going.</p>
+-                 <div class="streak-meter" aria-hidden="true"><span id="personal-streak-meter"></span></div>
+-               </article>
+-               <article class="streak-card circle-streak" id="today-circle-streak" hidden>
+-@@ -91,7 +90,6 @@
+-                   <span class="streak-kicker">Your circle</span>
+-                   <strong>6 days</strong>
+-                 </div>
+--                <p id="group-streak-status">Circle streak secured · 2 of 4 answered today.</p>
+-                 <div class="streak-meter threshold-meter" aria-hidden="true"><span id="group-streak-meter"></span></div>
+-               </article>
+-             </div>
+-diff --git a/dist/styles.css b/dist/styles.css
+-index 851411d..40b6b7b 100644
+---- a/dist/styles.css
+-+++ b/dist/styles.css
+-@@ -273,6 +273,7 @@ h1 {
+- .streak-card-heading strong { font-family: Georgia, "Times New Roman", serif; font-size: 1.3rem; font-weight: 600; white-space: nowrap; }
+- .streak-kicker { font-size: 0.72rem; font-weight: 900; text-transform: uppercase; white-space: nowrap; }
+- .streak-card p { min-height: 34px; margin: 8px 0 12px; color: #5f6863; font-size: 0.78rem; line-height: 1.35; }
+-+.streak-card-heading + .streak-meter { margin-top: 12px; }
+- .streak-meter { height: 7px; overflow: hidden; border: 1px solid var(--ink); border-radius: 2px; background: rgba(255, 255, 255, 0.65); }
+- .streak-meter span { display: block; width: 50%; height: 100%; background: var(--berry); transition: width 220ms ease; }
+- .threshold-meter { position: relative; }
+--- 
+-2.43.0
+-
+diff --git a/0003-Simplify-question-labels-and-drop-descriptive-subtex.patch b/0003-Simplify-question-labels-and-drop-descriptive-subtex.patch
+deleted file mode 100644
+index 7d555dc..0000000
+--- a/0003-Simplify-question-labels-and-drop-descriptive-subtex.patch
++++ /dev/null
+@@ -1,110 +0,0 @@
+-From 7d2a5fd746c085a7b17101b9f181374603290498 Mon Sep 17 00:00:00 2001
+-From: Claude <noreply@anthropic.com>
+-Date: Sun, 20 Sep 2026 02:56:42 +0000
+-Subject: [PATCH 3/3] Simplify question labels and drop descriptive subtext
+-
+-Collapse the mode buttons and daily label to just "Reflective" /
+-"Fun", and remove the descriptive sentence under the question
+-heading.
+----
+- dist/app.js     | 8 ++------
+- dist/index.html | 8 +++-----
+- dist/styles.css | 8 --------
+- 3 files changed, 5 insertions(+), 19 deletions(-)
+-
+-diff --git a/dist/app.js b/dist/app.js
+-index 466a55d..e177ece 100644
+---- a/dist/app.js
+-+++ b/dist/app.js
+-@@ -14,7 +14,6 @@ const circlePrivacyTitle = document.querySelector("#circle-privacy-title");
+- const circlePrivacyHint = document.querySelector("#circle-privacy-hint");
+- const questionHeading = document.querySelector("#question-heading");
+- const dailyLabel = document.querySelector("#daily-label");
+--const worldNote = document.querySelector("#world-note");
+- const dailyDate = document.querySelector("#daily-date");
+- const personalStreakMeter = document.querySelector("#personal-streak-meter");
+- const groupStreakMeter = document.querySelector("#group-streak-meter");
+-@@ -134,18 +133,16 @@ const funToday = questionForToday(funQuestions, "fun");
+- const dailyModes = {
+-   fun: {
+-     shortLabel: "Fun question",
+--    label: "Today's worldwide fun question",
+-+    label: "Fun",
+-     question: funToday.question,
+--    note: "A playful prompt everyone gets today. Go with your first instinct.",
+-     answerLabel: "Your answer",
+-     placeholder: "The more specific, the better...",
+-     followUp: funToday.followUp,
+-   },
+-   reflective: {
+-     shortLabel: "Reflective question",
+--    label: "Today's worldwide reflective question",
+-+    label: "Reflective",
+-     question: reflectiveToday.question,
+--    note: "Take a moment with it. A specific, honest answer is enough.",
+-     answerLabel: "Your reflection",
+-     placeholder: "A person, a habit, a place, a tiny moment...",
+-     followUp: reflectiveToday.followUp,
+-@@ -332,7 +329,6 @@ function renderMode(mode) {
+- 
+-   dailyLabel.textContent = content.label;
+-   questionHeading.textContent = content.question;
+--  worldNote.textContent = content.note;
+-   answerLabel.textContent = content.answerLabel;
+-   answerInput.placeholder = content.placeholder;
+-   conversationPrompt.textContent = content.followUp;
+-diff --git a/dist/index.html b/dist/index.html
+-index c370fb7..16b822a 100644
+---- a/dist/index.html
+-+++ b/dist/index.html
+-@@ -48,16 +48,16 @@
+-             <div class="daily-choice" aria-label="Today's questions">
+-               <button class="choice-button active" type="button" data-mode="reflective" aria-pressed="true">
+-                 <span class="choice-icon" aria-hidden="true">✦</span>
+--                <span><strong>Reflective Prompt</strong><small>Start here</small></span>
+-+                <span><strong>Reflective</strong></span>
+-               </button>
+-               <button class="choice-button" type="button" data-mode="fun" aria-pressed="false">
+-                 <span class="choice-icon" aria-hidden="true">☺</span>
+--                <span><strong>Fun Question</strong><small>Quick and playful →</small></span>
+-+                <span><strong>Fun</strong></span>
+-               </button>
+-             </div>
+- 
+-             <div class="question-meta">
+--              <span id="daily-label">Today's worldwide reflective question</span>
+-+              <span id="daily-label">Reflective</span>
+-               <span id="daily-date">September 19</span>
+-             </div>
+- 
+-@@ -65,8 +65,6 @@
+-               What is something small that has made life feel lighter lately?
+-             </h1>
+- 
+--            <p class="world-note" id="world-note">A quieter question for noticing what is already helping, even a little.</p>
+--
+-             <div class="status-row" id="today-circle-status" aria-label="Group participation" hidden>
+-               <div class="response-faces" aria-hidden="true">
+-                 <span class="face face-yellow">J</span>
+-diff --git a/dist/styles.css b/dist/styles.css
+-index 40b6b7b..7bccfaa 100644
+---- a/dist/styles.css
+-+++ b/dist/styles.css
+-@@ -220,14 +220,6 @@ h1 {
+-   letter-spacing: 0;
+- }
+- 
+--.world-note {
+--  max-width: 620px;
+--  margin: 22px 0 0;
+--  color: #5f6863;
+--  font-size: 1rem;
+--  line-height: 1.55;
+--}
+--
+- .status-row {
+-   justify-content: flex-start;
+-   margin: 34px 0;
+--- 
+-2.43.0
+-
+-- 
+2.43.0
+

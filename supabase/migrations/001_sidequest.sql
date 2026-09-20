@@ -83,7 +83,7 @@ as $$
 declare new_id uuid; new_code text;
 begin
   loop
-    new_code := upper(substr(encode(gen_random_bytes(5), 'hex'), 1, 6));
+    new_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
     exit when not exists(select 1 from circles where circles.invite_code = new_code);
   end loop;
   insert into circles(name, invite_code, created_by)

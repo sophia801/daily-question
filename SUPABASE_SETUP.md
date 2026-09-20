@@ -10,7 +10,8 @@ mode until the two public Supabase values are configured.
 2. Open **Authentication > Providers > Anonymous Sign-Ins** and enable it.
 3. Open **SQL Editor** and run the migrations in order: first
    `supabase/migrations/001_sidequest.sql`, then
-   `supabase/migrations/002_friends.sql`.
+   `supabase/migrations/002_friends.sql`, then
+   `supabase/migrations/003_fix_circle_codes.sql`.
 4. Open **Project Settings > API** and copy the project URL and publishable
    `anon` key. Never use the `service_role` key in this website.
 

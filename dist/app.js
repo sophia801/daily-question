@@ -380,6 +380,22 @@ async function refreshSharedAnswers() {
   });
 }
 
+async function syncSavedAnswers() {
+  if (!sharedBackendReady) return;
+  for (const mode of ["reflective", "fun"]) {
+    const saved = getSaved(mode);
+    if (!saved.answer || (saved.privacy === "friends" && !activeCircleId)) continue;
+    await window.sidequestBackend.saveAnswer(
+      mode,
+      saved.answer,
+      saved.privacy,
+      dailyModes[mode].question,
+      dailyModes[mode].followUp,
+      todayKey,
+    );
+  }
+}
+
 function renderMode(mode) {
   activeMode = mode;
   const content = dailyModes[mode];
@@ -515,12 +531,17 @@ async function startBackend() {
       if (!circleList.querySelector(`[data-circle="${state.circleId}"]`)) {
         const item = makeCircleListItem({ id: state.circleId, name: state.circleName || "Your circle", members: [], inviteCode: state.inviteCode, shared: true });
         circleList.append(item);
-        item.click();
       }
+      circleList.querySelector(`[data-circle="${state.circleId}"]`)?.click();
       await refreshSharedMessages();
       await refreshSharedAnswers();
       await refreshCircleStats();
       window.sidequestBackend.subscribeToMessages(() => refreshSharedMessages().catch(console.error));
+    }
+    try {
+      await syncSavedAnswers();
+    } catch (error) {
+      console.error("Saved answer sync failed", error);
     }
   } catch (error) {
     console.error("Supabase startup failed", error);
@@ -543,7 +564,9 @@ function makeCircleListItem(circle) {
   const name = document.createElement("strong");
   name.textContent = circle.name;
   const status = document.createElement("small");
-  status.textContent = `New circle · ${circle.members.length + 1} members`;
+  status.textContent = circle.shared && !circle.members.length
+    ? "Shared circle"
+    : `${circle.members.length + 1} members`;
   copy.append(name, status);
   button.append(avatar, copy);
   return button;

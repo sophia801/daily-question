@@ -49,7 +49,6 @@ const profileUsername = document.querySelector("#profile-username");
 const friendSetupNote = document.querySelector("#friend-setup-note");
 
 const privacyLabels = {
-  friends: "My circle",
   private: "Just me",
 };
 
@@ -57,6 +56,12 @@ const privacyClasses = {
   friends: "circle",
   private: "private",
 };
+
+function circleShareLabel(privacy) {
+  if (privacy !== "friends") return privacyLabels[privacy];
+  const activeItem = activeCircleId ? circleList.querySelector(`[data-circle="${activeCircleId}"]`) : null;
+  return activeItem ? `Share to ${activeItem.dataset.name}` : "My circle";
+}
 
 const reflectiveQuestions = [
   { question: "If you met yourself from five years ago, what would you tell them?", followUp: "What would your younger self be proud to see?" },
@@ -314,7 +319,7 @@ function showCompleted(answer, privacy) {
 
   answerCount.textContent = "3 of 4";
   yourAnswer.textContent = answer;
-  privacyResult.textContent = privacyLabels[privacy];
+  privacyResult.textContent = circleShareLabel(privacy);
   privateState.hidden = true;
   revealedState.hidden = false;
 }
@@ -480,8 +485,7 @@ function syncCircleState() {
   document.querySelector("#today-room").hidden = !hasCircles;
   const circlePrivacy = form.querySelector('input[value="friends"]');
   circlePrivacy.disabled = !hasCircles || answerInput.disabled;
-  const activeItem = activeCircleId ? circleList.querySelector(`[data-circle="${activeCircleId}"]`) : null;
-  circlePrivacyTitle.textContent = activeItem ? `Share to ${activeItem.dataset.name}` : "My circle";
+  circlePrivacyTitle.textContent = circleShareLabel("friends");
   circlePrivacyHint.textContent = hasCircles
     ? "Mutual reveal with this friend group."
     : "Create a circle to unlock this.";
@@ -585,7 +589,7 @@ function renderHistory(date) {
       badges.className = "history-badges";
       badges.append(
         badge(dailyModes[record.mode].shortLabel, record.mode),
-        badge(privacyLabels[record.privacy], privacyClasses[record.privacy]),
+        badge(circleShareLabel(record.privacy), privacyClasses[record.privacy]),
       );
       const question = document.createElement("h2");
       question.textContent = record.question;

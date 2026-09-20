@@ -1,7 +1,6 @@
 const form = document.querySelector("#answer-form");
 const answerInput = document.querySelector("#answer");
 const answerLabel = document.querySelector("#answer-label");
-const answerCount = document.querySelector("#answer-count");
 const lockedState = document.querySelector("#locked-state");
 const privateState = document.querySelector("#private-state");
 const privateAnswerText = document.querySelector("#private-answer-text");
@@ -333,7 +332,6 @@ async function refreshPersonalStreak() {
 
 function renderCircleStats() {
   if (!circleStats || !activeCircleId) {
-    answerCount.textContent = "—";
     groupStreakMeter.style.width = "0%";
     circleStreakCopy.textContent = "Answers from either daily question count toward the group goal.";
     circleStreakCount.textContent = "Waiting for answers";
@@ -347,7 +345,6 @@ function renderCircleStats() {
   const threshold = Math.ceil(memberCount * 0.5);
   const streakSecured = answeredCount >= threshold;
   const percent = memberCount ? Math.min(100, (answeredCount / memberCount) * 100) : 0;
-  answerCount.textContent = `${answeredCount} of ${memberCount}`;
   groupStreakMeter.style.width = `${percent}%`;
   circleStreakCopy.textContent = streakSecured
     ? "Half the circle answered, so today's streak is safe. Either question counts."
@@ -684,7 +681,6 @@ function syncCircleState() {
   document.querySelector("#circle-empty").hidden = hasCircles;
   document.querySelector("#circle-room").hidden = !hasCircles || !activeCircleId;
   document.querySelector("#today-circle-streak").hidden = !hasCircles;
-  document.querySelector("#today-circle-status").hidden = !hasCircles;
   document.querySelector("#today-room").hidden = !hasCircles;
   const circlePrivacy = form.querySelector('input[value="friends"]');
   circlePrivacy.disabled = !hasCircles || answerInput.disabled;

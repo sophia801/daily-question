@@ -48,6 +48,10 @@ const friendSearchForm = document.querySelector("#friend-search-form");
 const friendsGrid = document.querySelector("#friends-grid");
 const viewCircleAnswers = document.querySelector("#view-circle-answers");
 const answerGate = document.querySelector("#answer-gate");
+const circleAnswersPanel = document.querySelector("#circle-answers-panel");
+const circleAnswerList = document.querySelector("#circle-answer-list");
+const closeCircleAnswers = document.querySelector("#close-circle-answers");
+const circleAnswersHeading = document.querySelector("#circle-answers-heading");
 const profileForm = document.querySelector("#profile-form");
 const profileUsername = document.querySelector("#profile-username");
 const friendSetupNote = document.querySelector("#friend-setup-note");
@@ -195,6 +199,7 @@ let activeMode = "reflective";
 let sharedBackendReady = false;
 let circleStats = null;
 let backendPersonalStreak = null;
+let circleAnswersExpanded = false;
 
 function storageKey(type, mode = activeMode) {
   return `sidequest-${type}-${todayKey}-${mode}`;
@@ -352,8 +357,9 @@ function showCompleted(answer, privacy) {
 async function refreshSharedAnswers() {
   const saved = getSaved(activeMode);
   answerList.querySelectorAll(".friend-answer:not(.yours)").forEach((item) => item.remove());
-  if (!sharedBackendReady || !activeCircleId || saved.privacy !== "friends") return;
-  if (saved.circleIds.length && !saved.circleIds.includes(activeCircleId)) return;
+  circleAnswerList.replaceChildren();
+  if (!sharedBackendReady || !activeCircleId || saved.privacy !== "friends") return [];
+  if (saved.circleIds.length && !saved.circleIds.includes(activeCircleId)) return [];
   const answers = await window.sidequestBackend.loadCircleAnswers(activeMode, todayKey);
   answers.filter((answer) => !answer.mine).forEach((answer, index) => {
     if (answerList.querySelector(`[data-answer-id="${CSS.escape(answer.id)}"]`)) return;
@@ -372,6 +378,33 @@ async function refreshSharedAnswers() {
     item.append(avatar, copy);
     answerList.append(item);
   });
+  if (circleAnswersExpanded) renderCircleAnswers(answers);
+  return answers;
+}
+
+function renderCircleAnswers(answers) {
+  if (!answers.length) {
+    const empty = document.createElement("p");
+    empty.className = "circle-answer-empty";
+    empty.textContent = "No one else has shared an answer here yet.";
+    circleAnswerList.replaceChildren(empty);
+    return;
+  }
+  circleAnswerList.replaceChildren(...answers.map((answer, index) => {
+    const item = document.createElement("article");
+    item.className = `friend-answer${answer.mine ? " yours" : ""}`;
+    const avatar = document.createElement("span");
+    avatar.className = `face ${answer.mine ? "face-green" : ["face-yellow", "face-blue", "face-pink"][index % 3]}`;
+    avatar.textContent = answer.mine ? "You" : answer.name.charAt(0).toUpperCase();
+    const copy = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = answer.mine ? "You" : answer.name;
+    const body = document.createElement("p");
+    body.textContent = answer.body;
+    copy.append(name, body);
+    item.append(avatar, copy);
+    return item;
+  }));
 }
 
 async function syncSavedAnswers() {
@@ -618,6 +651,7 @@ function renderSharedCircleLinks() {
     button.className = "shared-circle-link";
     button.textContent = `Open ${circle.dataset.name} chat →`;
     button.addEventListener("click", async () => {
+      circleAnswersExpanded = true;
       await selectCircleItem(circle);
       window.location.hash = "#circles";
       window.setTimeout(() => document.querySelector(".circle-conversation")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
@@ -824,6 +858,11 @@ async function selectCircleItem(item) {
   } else {
     renderMessages();
   }
+  const canViewAnswers = canViewActiveCircleAnswers();
+  circleAnswersPanel.hidden = !circleAnswersExpanded || !canViewAnswers;
+  answerGate.hidden = !circleAnswersExpanded || canViewAnswers;
+  viewCircleAnswers.textContent = circleAnswersExpanded && canViewAnswers ? "Hide answers" : "View answers";
+  circleAnswersHeading.textContent = `Answers in ${roomName.textContent}`;
   syncCircleState();
 }
 
@@ -868,18 +907,33 @@ circlePrivacyLabel.addEventListener("click", (event) => {
 
 document.querySelector("#close-circle-dialog").addEventListener("click", () => circleDialog.close());
 
-viewCircleAnswers.addEventListener("click", async () => {
+function canViewActiveCircleAnswers() {
   const saved = getSaved(activeMode);
-  if (saved.answer && saved.privacy === "friends" && (!saved.circleIds.length || saved.circleIds.includes(activeCircleId))) {
+  return Boolean(saved.answer && saved.privacy === "friends" && (!saved.circleIds.length || saved.circleIds.includes(activeCircleId)));
+}
+
+viewCircleAnswers.addEventListener("click", async () => {
+  if (canViewActiveCircleAnswers()) {
+    circleAnswersExpanded = !circleAnswersExpanded;
     answerGate.hidden = true;
-    await refreshSharedAnswers();
-    window.location.hash = "#today";
-    window.setTimeout(() => document.querySelector("#reveal-panel").scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    circleAnswersPanel.hidden = !circleAnswersExpanded;
+    viewCircleAnswers.textContent = circleAnswersExpanded ? "Hide answers" : "View answers";
+    if (circleAnswersExpanded) await refreshSharedAnswers();
     return;
   }
+  circleAnswersExpanded = true;
+  circleAnswersPanel.hidden = true;
   answerGate.hidden = false;
+  viewCircleAnswers.textContent = "View answers";
+  const saved = getSaved(activeMode);
   showToast(saved.answer ? "Share today's answer with this circle to unlock its answers" : "Submit your own answer first to unlock the circle");
   answerGate.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+closeCircleAnswers.addEventListener("click", () => {
+  circleAnswersExpanded = false;
+  circleAnswersPanel.hidden = true;
+  viewCircleAnswers.textContent = "View answers";
 });
 
 refreshCircleAnswers.addEventListener("click", async () => {

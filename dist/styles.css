@@ -59,12 +59,7 @@ button { color: inherit; }
 .brand-mark {
   width: 36px;
   height: 36px;
-  display: grid;
-  place-items: center;
-  background: var(--ink);
-  color: var(--paper);
-  background: var(--berry);
-  border-radius: 4px;
+  object-fit: contain;
   transform: rotate(-3deg);
 }
 

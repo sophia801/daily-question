@@ -33,10 +33,6 @@
           <a href="#history">History</a>
           <a href="#friends">Friends</a>
         </nav>
-        <button class="group-switcher" id="circle-shortcut" type="button" aria-label="Open circles" hidden>
-          <span id="circle-shortcut-name">Your circle</span>
-          <span aria-hidden="true">⌄</span>
-        </button>
       </header>
 
       <main>
@@ -303,13 +299,16 @@
             </section>
 
             <div class="room-question-strip">
-              <span class="history-badge fun">Fun question</span>
+              <div class="circle-question-tabs" aria-label="Choose answers to view">
+                <button class="active" type="button" data-circle-mode="reflective" aria-pressed="true">Reflective</button>
+                <button type="button" data-circle-mode="fun" aria-pressed="false">Fun</button>
+              </div>
               <p id="circle-room-question">If today had a movie title, what would it be?</p>
               <button class="view-answers-button" id="view-circle-answers" type="button">View answers</button>
             </div>
             <div class="answer-gate" id="answer-gate" hidden role="status">
               <div><strong>Your answer comes first.</strong><p>Submit your own response before seeing what the circle said.</p></div>
-              <a href="#today">Answer today's question</a>
+              <a href="#today" id="answer-gate-link">Answer this question</a>
             </div>
 
             <section class="circle-answers-panel" id="circle-answers-panel" hidden aria-labelledby="circle-answers-heading">

@@ -15,7 +15,7 @@
   }
 
   function mapMessage(row) {
-    const name = row.profiles?.display_name || (row.user_id === user?.id ? "You" : "Friend");
+    const name = row.profiles?.username || row.profiles?.display_name || "Friend";
     return {
       id: row.id,
       author: row.user_id === user?.id ? "You" : name,
@@ -27,10 +27,10 @@
   }
 
   async function ensureProfile() {
-    const displayName = localStorage.getItem("sidequest-display-name") || config.displayName || "You";
     username = localStorage.getItem("sparkit-username")
       || config.username
       || `spark_${user.id.replaceAll("-", "").slice(0, 8)}`;
+    const displayName = localStorage.getItem("sidequest-display-name") || config.displayName || username;
     const { error } = await client.from("profiles").upsert({ id: user.id, display_name: displayName, username });
     if (error) throw error;
     localStorage.setItem("sparkit-username", username);
@@ -233,7 +233,7 @@
         id: answer.id,
         body: answer.body,
         mine: answer.mine,
-        name: answer.mine ? "You" : (answer.display_name || answer.username || "Friend"),
+        name: answer.mine ? "You" : (answer.username || answer.display_name || "Friend"),
       }));
     }
     if (sharedError.code !== "PGRST202") throw sharedError;
@@ -249,7 +249,7 @@
       id: answer.id,
       body: answer.body,
       mine: answer.user_id === user.id,
-      name: answer.user_id === user.id ? "You" : (answer.profiles?.display_name || answer.profiles?.username || "Friend"),
+      name: answer.user_id === user.id ? "You" : (answer.profiles?.username || answer.profiles?.display_name || "Friend"),
     }));
   }
 
@@ -268,11 +268,34 @@
     } : null;
   }
 
+  async function loadPersonalStreak() {
+    if (!configured || !user) return 0;
+    const { data, error } = await client.from("answers")
+      .select("questions(question_date)")
+      .eq("user_id", user.id);
+    if (error) throw error;
+    const answeredDates = new Set(data.map((answer) => answer.questions?.question_date).filter(Boolean));
+    let streak = 0;
+    const cursor = new Date();
+    cursor.setHours(12, 0, 0, 0);
+    const keyFor = (date) => [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0"),
+    ].join("-");
+    if (!answeredDates.has(keyFor(cursor))) cursor.setDate(cursor.getDate() - 1);
+    while (answeredDates.has(keyFor(cursor))) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
   async function loadMessages() {
     if (!configured || !circleId) return [];
     const { data, error } = await client
       .from("messages")
-      .select("id,user_id,body,created_at,profiles(display_name)")
+      .select("id,user_id,body,created_at,profiles(display_name,username)")
       .eq("circle_id", circleId).order("created_at").limit(100);
     if (error) throw error;
     return data.map(mapMessage);
@@ -308,6 +331,7 @@
     saveAnswer,
     loadCircleAnswers,
     loadCircleStats,
+    loadPersonalStreak,
     loadMessages,
     sendMessage,
     subscribeToMessages,

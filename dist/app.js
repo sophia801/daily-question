@@ -20,7 +20,6 @@ const refreshCircleAnswers = document.querySelector("#refresh-circle-answers");
 const questionHeading = document.querySelector("#question-heading");
 const dailyLabel = document.querySelector("#daily-label");
 const dailyDate = document.querySelector("#daily-date");
-const personalStreakMeter = document.querySelector("#personal-streak-meter");
 const personalStreakCount = document.querySelector("#personal-streak-count");
 const groupStreakMeter = document.querySelector("#group-streak-meter");
 const circleStreakCopy = document.querySelector("#circle-streak-copy");
@@ -234,6 +233,7 @@ try {
 let activeMode = "reflective";
 let sharedBackendReady = false;
 let circleStats = null;
+let backendPersonalStreak = null;
 
 function storageKey(type, mode = activeMode) {
   return `sidequest-${type}-${todayKey}-${mode}`;
@@ -278,12 +278,7 @@ function saveTodayToHistory() {
   localStorage.setItem("sparkit-answer-history-v1", JSON.stringify(historyRecords));
 }
 
-function hasCompletedToday() {
-  return getTodayRecords().length > 0;
-}
-
 function renderStreaks() {
-  const completed = hasCompletedToday();
   let streak = 0;
   const cursor = new Date(`${todayKey}T12:00:00`);
   let checkingToday = true;
@@ -301,9 +296,15 @@ function renderStreaks() {
     cursor.setDate(cursor.getDate() - 1);
   }
 
-  personalStreakCount.textContent = `${streak} ${streak === 1 ? "day" : "days"}`;
-  personalStreakMeter.style.width = completed ? "100%" : "72%";
+  const displayedStreak = backendPersonalStreak ?? streak;
+  personalStreakCount.textContent = `${displayedStreak} ${displayedStreak === 1 ? "day" : "days"}`;
   renderCircleStats();
+}
+
+async function refreshPersonalStreak() {
+  if (!sharedBackendReady || !window.sidequestBackend?.loadPersonalStreak) return;
+  backendPersonalStreak = await window.sidequestBackend.loadPersonalStreak();
+  renderStreaks();
 }
 
 function renderCircleStats() {
@@ -570,6 +571,7 @@ async function startBackend() {
     }
     try {
       await syncSavedAnswers();
+      await refreshPersonalStreak();
     } catch (error) {
       console.error("Saved answer sync failed", error);
     }
@@ -1090,6 +1092,7 @@ form.addEventListener("submit", async (event) => {
       );
       await refreshSharedAnswers();
       await refreshCircleStats();
+      await refreshPersonalStreak();
     } catch (error) {
       console.error("Supabase answer failed", error);
       showToast("Saved here, but the shared answer did not sync");

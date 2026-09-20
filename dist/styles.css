@@ -270,7 +270,6 @@ h1 {
 .streak-meter span { display: block; width: 50%; height: 100%; background: var(--berry); transition: width 220ms ease; }
 .threshold-meter { position: relative; }
 .threshold-meter::after { content: ""; position: absolute; top: -2px; bottom: -2px; left: 50%; width: 2px; background: var(--ink); }
-.personal-streak .streak-meter span { background: var(--green); }
 
 .answer-form {
   max-width: 700px;

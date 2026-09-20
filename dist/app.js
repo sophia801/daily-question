@@ -288,7 +288,6 @@ function renderStreaks() {
 function renderCircleStats() {
   if (!circleStats || !activeCircleId) {
     answerCount.textContent = "—";
-    groupStreakStatus.textContent = "Create or join a circle to see today's progress.";
     groupStreakMeter.style.width = "0%";
     circleStreakCopy.textContent = "Answers from either daily question count toward the group goal.";
     circleStreakCount.textContent = "Waiting for answers";
@@ -302,9 +301,6 @@ function renderCircleStats() {
   const streakSecured = answeredCount >= threshold;
   const percent = memberCount ? Math.min(100, (answeredCount / memberCount) * 100) : 0;
   answerCount.textContent = `${answeredCount} of ${memberCount}`;
-  groupStreakStatus.textContent = streakSecured
-    ? `Secured · ${answeredCount} of ${memberCount} answered today.`
-    : `${Math.max(0, threshold - answeredCount)} more needed to secure today's group goal.`;
   groupStreakMeter.style.width = `${percent}%`;
   circleStreakCopy.textContent = streakSecured
     ? "Half the circle answered, so today's streak is safe. Either question counts."

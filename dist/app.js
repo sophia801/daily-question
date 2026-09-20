@@ -12,6 +12,10 @@ const privacyResult = document.querySelector("#privacy-result");
 const circlePrivacyLabel = document.querySelector("#circle-privacy-label");
 const circlePrivacyTitle = document.querySelector("#circle-privacy-title");
 const circlePrivacyHint = document.querySelector("#circle-privacy-hint");
+const answerCircleChoice = document.querySelector("#answer-circle-choice");
+const answerCircleSelect = document.querySelector("#answer-circle-select");
+const openCircleChat = document.querySelector("#open-circle-chat");
+const refreshCircleAnswers = document.querySelector("#refresh-circle-answers");
 const questionHeading = document.querySelector("#question-heading");
 const dailyLabel = document.querySelector("#daily-label");
 const dailyDate = document.querySelector("#daily-date");
@@ -60,7 +64,9 @@ const privacyClasses = {
 
 function circleShareLabel(privacy) {
   if (privacy !== "friends") return privacyLabels[privacy];
-  const activeItem = activeCircleId ? circleList.querySelector(`[data-circle="${activeCircleId}"]`) : null;
+  const savedCircleId = getSaved?.(activeMode).circleId;
+  const circleId = savedCircleId || activeCircleId;
+  const activeItem = circleId ? circleList.querySelector(`[data-circle="${circleId}"]`) : null;
   return activeItem ? `Share to ${activeItem.dataset.name}` : "My circle";
 }
 
@@ -235,6 +241,7 @@ function getSaved(mode = activeMode) {
   return {
     answer: localStorage.getItem(storageKey("answer", mode)),
     privacy: localStorage.getItem(storageKey("privacy", mode)) || "private",
+    circleId: localStorage.getItem(storageKey("circle", mode)),
   };
 }
 
@@ -326,6 +333,7 @@ function setFormLocked(locked) {
   privacyInputs.forEach((input) => {
     input.disabled = locked || (input.value === "friends" && !activeCircleId);
   });
+  answerCircleSelect.disabled = locked;
 }
 
 function showLockedState() {
@@ -354,15 +362,18 @@ function showCompleted(answer, privacy) {
 
   yourAnswer.textContent = answer;
   privacyResult.textContent = circleShareLabel(privacy);
+  openCircleChat.innerHTML = `Open ${roomName.textContent || "circle"} chat <span aria-hidden="true">→</span>`;
   privateState.hidden = true;
   revealedState.hidden = false;
   refreshSharedAnswers().catch((error) => console.error("Shared answers failed", error));
 }
 
 async function refreshSharedAnswers() {
-  if (!sharedBackendReady || !activeCircleId || getSaved(activeMode).privacy !== "friends") return;
-  const answers = await window.sidequestBackend.loadCircleAnswers(activeMode, todayKey);
+  const saved = getSaved(activeMode);
   answerList.querySelectorAll(".friend-answer:not(.yours)").forEach((item) => item.remove());
+  if (!sharedBackendReady || !activeCircleId || saved.privacy !== "friends") return;
+  if (saved.circleId && saved.circleId !== activeCircleId) return;
+  const answers = await window.sidequestBackend.loadCircleAnswers(activeMode, todayKey);
   answers.filter((answer) => !answer.mine).forEach((answer, index) => {
     const item = document.createElement("article");
     item.className = "friend-answer";
@@ -586,6 +597,22 @@ function syncCircleState() {
   circlePrivacyHint.textContent = hasCircles
     ? "Mutual reveal with this friend group."
     : "Create a circle to unlock this.";
+  syncCirclePicker();
+}
+
+function syncCirclePicker() {
+  const circles = [...circleList.querySelectorAll(".circle-list-item")];
+  const selected = getSaved(activeMode).circleId || activeCircleId || answerCircleSelect.value;
+  answerCircleSelect.replaceChildren(...circles.map((circle) => {
+    const option = document.createElement("option");
+    option.value = circle.dataset.circle;
+    option.textContent = circle.dataset.name || circle.querySelector("strong").textContent;
+    return option;
+  }));
+  if (selected && circles.some((circle) => circle.dataset.circle === selected)) {
+    answerCircleSelect.value = selected;
+  }
+  answerCircleChoice.hidden = circles.length === 0 || !form.elements.privacy.value || form.elements.privacy.value !== "friends";
 }
 
 function addFriendRow(friend) {
@@ -744,6 +771,17 @@ modeButtons.forEach((button) => {
   button.addEventListener("click", () => renderMode(button.dataset.mode));
 });
 
+privacyInputs.forEach((input) => {
+  input.addEventListener("change", syncCirclePicker);
+});
+
+answerCircleSelect.addEventListener("change", () => {
+  const item = circleList.querySelector(`[data-circle="${CSS.escape(answerCircleSelect.value)}"]`);
+  if (!item) return;
+  form.querySelector('input[value="friends"]').checked = true;
+  item.click();
+});
+
 calendarDays.forEach((day) => {
   day.addEventListener("click", () => renderHistory(day.dataset.date));
 });
@@ -760,10 +798,11 @@ document.querySelectorAll("[data-message-form]").forEach((messageForm) => {
   });
 });
 
-circleList.addEventListener("click", async (event) => {
-  const item = event.target.closest(".circle-list-item");
-  if (!item) return;
+async function selectCircleItem(item) {
   activeCircleId = item.dataset.circle;
+  if ([...answerCircleSelect.options].some((option) => option.value === activeCircleId)) {
+    answerCircleSelect.value = activeCircleId;
+  }
   circleList.querySelectorAll(".circle-list-item").forEach((button) => button.classList.toggle("active", button === item));
   roomName.textContent = item.dataset.name || item.querySelector("strong").textContent;
   document.querySelector("#circle-shortcut-name").textContent = roomName.textContent;
@@ -785,6 +824,12 @@ circleList.addEventListener("click", async (event) => {
     renderMessages();
   }
   syncCircleState();
+}
+
+circleList.addEventListener("click", async (event) => {
+  const item = event.target.closest(".circle-list-item");
+  if (!item) return;
+  await selectCircleItem(item);
 });
 
 copyCircleInvite.addEventListener("click", async () => {
@@ -821,15 +866,42 @@ circlePrivacyLabel.addEventListener("click", (event) => {
 
 document.querySelector("#close-circle-dialog").addEventListener("click", () => circleDialog.close());
 
-viewCircleAnswers.addEventListener("click", () => {
-  if (getSaved(activeMode).answer) {
+viewCircleAnswers.addEventListener("click", async () => {
+  const saved = getSaved(activeMode);
+  if (saved.answer && saved.privacy === "friends" && (!saved.circleId || saved.circleId === activeCircleId)) {
     answerGate.hidden = true;
+    await refreshSharedAnswers();
     window.location.hash = "#today";
+    window.setTimeout(() => document.querySelector("#reveal-panel").scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     return;
   }
   answerGate.hidden = false;
-  showToast("Submit your own answer first to unlock the circle");
+  showToast(saved.answer ? "Share today's answer with this circle to unlock its answers" : "Submit your own answer first to unlock the circle");
   answerGate.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+openCircleChat.addEventListener("click", () => {
+  const savedCircleId = getSaved(activeMode).circleId;
+  const savedCircle = savedCircleId ? circleList.querySelector(`[data-circle="${CSS.escape(savedCircleId)}"]`) : null;
+  if (savedCircle && savedCircleId !== activeCircleId) selectCircleItem(savedCircle).catch(console.error);
+  window.location.hash = "#circles";
+  window.setTimeout(() => document.querySelector(".circle-conversation")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+});
+
+refreshCircleAnswers.addEventListener("click", async () => {
+  refreshCircleAnswers.disabled = true;
+  try {
+    const savedCircleId = getSaved(activeMode).circleId;
+    const savedCircle = savedCircleId ? circleList.querySelector(`[data-circle="${CSS.escape(savedCircleId)}"]`) : null;
+    if (savedCircle && savedCircleId !== activeCircleId) await selectCircleItem(savedCircle);
+    await refreshSharedAnswers();
+    showToast("Circle answers refreshed");
+  } catch (error) {
+    console.error("Shared answer refresh failed", error);
+    showToast("Could not refresh answers right now");
+  } finally {
+    refreshCircleAnswers.disabled = false;
+  }
 });
 
 createCircleForm.addEventListener("submit", async (event) => {
@@ -928,8 +1000,14 @@ form.addEventListener("submit", async (event) => {
   const answer = answerInput.value.trim();
   if (!answer) return;
   const privacy = form.elements.privacy.value;
+  if (privacy === "friends" && !activeCircleId) {
+    showToast("Choose a circle before sharing");
+    return;
+  }
   localStorage.setItem(storageKey("answer"), answer);
   localStorage.setItem(storageKey("privacy"), privacy);
+  if (privacy === "friends") localStorage.setItem(storageKey("circle"), activeCircleId);
+  else localStorage.removeItem(storageKey("circle"));
   saveTodayToHistory();
   showCompleted(answer, privacy);
   renderStreaks();

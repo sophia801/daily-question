@@ -118,6 +118,11 @@
                   <span><strong>Just me</strong><small>Keep this to myself.</small></span>
                 </label>
               </fieldset>
+              <div class="answer-circle-choice" id="answer-circle-choice" hidden>
+                <label for="answer-circle-select">Share with</label>
+                <select id="answer-circle-select" name="circle" aria-describedby="answer-circle-help"></select>
+                <small id="answer-circle-help">Friends in this circle unlock your answer after submitting their own.</small>
+              </div>
             </form>
 
             <p class="privacy-note">
@@ -189,6 +194,11 @@
                   <span class="face face-green">You</span>
                   <div><strong>You</strong><p id="your-answer"></p></div>
                 </article>
+              </div>
+
+              <div class="answer-actions">
+                <button class="primary-button" id="open-circle-chat" type="button">Open circle chat <span aria-hidden="true">→</span></button>
+                <button class="text-button" id="refresh-circle-answers" type="button">Refresh answers</button>
               </div>
 
               <div class="conversation-spark">

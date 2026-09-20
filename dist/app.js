@@ -16,6 +16,7 @@ const questionHeading = document.querySelector("#question-heading");
 const dailyLabel = document.querySelector("#daily-label");
 const dailyDate = document.querySelector("#daily-date");
 const personalStreakMeter = document.querySelector("#personal-streak-meter");
+const personalStreakCount = document.querySelector("#personal-streak-count");
 const groupStreakMeter = document.querySelector("#group-streak-meter");
 const circleStreakCopy = document.querySelector("#circle-streak-copy");
 const circleStreakCount = document.querySelector("#circle-streak-count");
@@ -46,6 +47,7 @@ const profileUsername = document.querySelector("#profile-username");
 const friendSetupNote = document.querySelector("#friend-setup-note");
 const copyCircleInvite = document.querySelector("#copy-circle-invite");
 const answerList = revealedState.querySelector(".answer-list");
+const todayRoomMembers = document.querySelector("#today-room-members");
 
 const privacyLabels = {
   private: "Just me",
@@ -223,6 +225,7 @@ try {
 
 let activeMode = "reflective";
 let sharedBackendReady = false;
+let circleStats = null;
 
 function storageKey(type, mode = activeMode) {
   return `sidequest-${type}-${todayKey}-${mode}`;
@@ -260,18 +263,65 @@ function hasCompletedToday() {
 
 function renderStreaks() {
   const completed = hasCompletedToday();
-  const groupAnswers = completed ? 3 : 2;
-  const groupTotal = 4;
-  const threshold = Math.ceil(groupTotal * 0.5);
-  const streakSecured = groupAnswers >= threshold;
+  let streak = 0;
+  const cursor = new Date(`${todayKey}T12:00:00`);
+  let checkingToday = true;
+  while (true) {
+    const key = [cursor.getFullYear(), String(cursor.getMonth() + 1).padStart(2, "0"), String(cursor.getDate()).padStart(2, "0")].join("-");
+    const records = key === todayKey ? getTodayRecords() : (historyRecords[key] || []);
+    if (!records.length && checkingToday) {
+      checkingToday = false;
+      cursor.setDate(cursor.getDate() - 1);
+      continue;
+    }
+    if (!records.length) break;
+    streak += 1;
+    checkingToday = false;
+    cursor.setDate(cursor.getDate() - 1);
+  }
 
+  personalStreakCount.textContent = `${streak} ${streak === 1 ? "day" : "days"}`;
   personalStreakMeter.style.width = completed ? "100%" : "72%";
-  groupStreakMeter.style.width = `${(groupAnswers / groupTotal) * 100}%`;
+  renderCircleStats();
+}
+
+function renderCircleStats() {
+  if (!circleStats || !activeCircleId) {
+    answerCount.textContent = "—";
+    groupStreakStatus.textContent = "Create or join a circle to see today's progress.";
+    groupStreakMeter.style.width = "0%";
+    circleStreakCopy.textContent = "Answers from either daily question count toward the group goal.";
+    circleStreakCount.textContent = "Waiting for answers";
+    circleStreakMeter.style.width = "0%";
+    todayRoomMembers.textContent = "Circle";
+    return;
+  }
+
+  const { answeredCount, memberCount } = circleStats;
+  const threshold = Math.ceil(memberCount * 0.5);
+  const streakSecured = answeredCount >= threshold;
+  const percent = memberCount ? Math.min(100, (answeredCount / memberCount) * 100) : 0;
+  answerCount.textContent = `${answeredCount} of ${memberCount}`;
+  groupStreakStatus.textContent = streakSecured
+    ? `Secured · ${answeredCount} of ${memberCount} answered today.`
+    : `${Math.max(0, threshold - answeredCount)} more needed to secure today's group goal.`;
+  groupStreakMeter.style.width = `${percent}%`;
   circleStreakCopy.textContent = streakSecured
     ? "Half the circle answered, so today's streak is safe. Either question counts."
-    : `${threshold - groupAnswers} more answer needed to keep the circle streak.`;
-  circleStreakCount.textContent = `${groupAnswers} / ${groupTotal} · 50% needed`;
-  circleStreakMeter.style.width = `${(groupAnswers / groupTotal) * 100}%`;
+    : `${Math.max(0, threshold - answeredCount)} more needed to reach 50% today.`;
+  circleStreakCount.textContent = `${answeredCount} / ${memberCount} · ${threshold} needed`;
+  circleStreakMeter.style.width = `${percent}%`;
+  todayRoomMembers.textContent = `${memberCount} ${memberCount === 1 ? "member" : "members"}`;
+}
+
+async function refreshCircleStats() {
+  if (!sharedBackendReady || !activeCircleId) {
+    circleStats = null;
+    renderCircleStats();
+    return;
+  }
+  circleStats = await window.sidequestBackend.loadCircleStats(todayKey);
+  renderCircleStats();
 }
 
 function setFormLocked(locked) {
@@ -284,7 +334,6 @@ function setFormLocked(locked) {
 
 function showLockedState() {
   answerInput.value = "";
-  answerCount.textContent = "2 of 4";
   form.querySelector('button[type="submit"]').innerHTML = 'Lock in answer <span aria-hidden="true">→</span>';
   privacyInputs.forEach((input) => { input.checked = input.value === (activeCircleId ? "friends" : "private"); });
   setFormLocked(false);
@@ -301,14 +350,12 @@ function showCompleted(answer, privacy) {
   lockedState.hidden = true;
 
   if (privacy === "private") {
-    answerCount.textContent = "2 of 4";
     privateAnswerText.textContent = answer;
     privateState.hidden = false;
     revealedState.hidden = true;
     return;
   }
 
-  answerCount.textContent = "3 of 4";
   yourAnswer.textContent = answer;
   privacyResult.textContent = circleShareLabel(privacy);
   privateState.hidden = true;
@@ -476,6 +523,7 @@ async function startBackend() {
       }
       await refreshSharedMessages();
       await refreshSharedAnswers();
+      await refreshCircleStats();
       window.sidequestBackend.subscribeToMessages(() => refreshSharedMessages().catch(console.error));
     }
   } catch (error) {
@@ -708,6 +756,7 @@ circleList.addEventListener("click", async (event) => {
       await window.sidequestBackend.selectCircle(activeCircleId);
       await refreshSharedMessages();
       await refreshSharedAnswers();
+      await refreshCircleStats();
       window.sidequestBackend.subscribeToMessages(() => refreshSharedMessages().catch(console.error));
     } catch (error) {
       console.error("Circle selection failed", error);
@@ -879,6 +928,7 @@ form.addEventListener("submit", async (event) => {
         todayKey,
       );
       await refreshSharedAnswers();
+      await refreshCircleStats();
     } catch (error) {
       console.error("Supabase answer failed", error);
       showToast("Saved here, but the shared answer did not sync");

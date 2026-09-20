@@ -227,6 +227,21 @@
     }));
   }
 
+  async function loadCircleStats(answerDate) {
+    if (!configured || !circleId) return null;
+    const { data, error } = await client.rpc("get_circle_daily_stats", {
+      target_circle: circleId,
+      target_date: answerDate,
+    });
+    if (error?.code === "PGRST202") return null;
+    if (error) throw error;
+    const stats = data?.[0];
+    return stats ? {
+      memberCount: Number(stats.member_count),
+      answeredCount: Number(stats.answered_count),
+    } : null;
+  }
+
   async function loadMessages() {
     if (!configured || !circleId) return [];
     const { data, error } = await client
@@ -266,6 +281,7 @@
     acceptFriendRequest,
     saveAnswer,
     loadCircleAnswers,
+    loadCircleStats,
     loadMessages,
     sendMessage,
     subscribeToMessages,

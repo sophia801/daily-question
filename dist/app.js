@@ -44,6 +44,7 @@ const answerGate = document.querySelector("#answer-gate");
 const profileForm = document.querySelector("#profile-form");
 const profileUsername = document.querySelector("#profile-username");
 const friendSetupNote = document.querySelector("#friend-setup-note");
+const copyCircleInvite = document.querySelector("#copy-circle-invite");
 
 const privacyLabels = {
   private: "Just me",
@@ -420,6 +421,10 @@ async function startBackend() {
   }
   try {
     const state = await window.sidequestBackend.init();
+    friendSearchForm.elements.username.disabled = false;
+    friendSearchForm.querySelector('button[type="submit"]').disabled = false;
+    friendSearchForm.elements.username.required = true;
+    friendSetupNote.textContent = "Search for the exact sparKIT username. They can accept from their Friends page.";
     profileUsername.value = state.username;
     document.querySelector("#your-handle").textContent = `Your username: @${state.username}`;
     const sharedFriends = await window.sidequestBackend.loadFriends();
@@ -430,7 +435,7 @@ async function startBackend() {
       activeCircleId = state.circleId;
       circleMessages[activeCircleId] ||= [];
       if (!circleList.querySelector(`[data-circle="${state.circleId}"]`)) {
-        const item = makeCircleListItem({ id: state.circleId, name: state.circleName || "Your circle", members: [] });
+        const item = makeCircleListItem({ id: state.circleId, name: state.circleName || "Your circle", members: [], inviteCode: state.inviteCode, shared: true });
         circleList.append(item);
         item.click();
       }
@@ -449,6 +454,8 @@ function makeCircleListItem(circle) {
   button.type = "button";
   button.dataset.circle = circle.id;
   button.dataset.name = circle.name;
+  button.dataset.inviteCode = circle.inviteCode || "";
+  button.dataset.shared = circle.shared ? "true" : "false";
   const avatar = document.createElement("span");
   avatar.className = "circle-avatar coral";
   avatar.textContent = circle.name.split(/\s+/).map((word) => word[0]).join("").slice(0, 2).toUpperCase();
@@ -650,7 +657,7 @@ document.querySelectorAll("[data-message-form]").forEach((messageForm) => {
   });
 });
 
-circleList.addEventListener("click", (event) => {
+circleList.addEventListener("click", async (event) => {
   const item = event.target.closest(".circle-list-item");
   if (!item) return;
   activeCircleId = item.dataset.circle;
@@ -658,8 +665,33 @@ circleList.addEventListener("click", (event) => {
   roomName.textContent = item.dataset.name || item.querySelector("strong").textContent;
   document.querySelector("#circle-shortcut-name").textContent = roomName.textContent;
   document.querySelector("#circle-message").placeholder = `Message ${roomName.textContent}...`;
-  renderMessages();
+  copyCircleInvite.hidden = !item.dataset.inviteCode;
+  copyCircleInvite.dataset.inviteCode = item.dataset.inviteCode;
+  if (item.dataset.shared === "true" && window.sidequestBackend?.enabled) {
+    try {
+      await window.sidequestBackend.selectCircle(activeCircleId);
+      await refreshSharedMessages();
+      window.sidequestBackend.subscribeToMessages(() => refreshSharedMessages().catch(console.error));
+    } catch (error) {
+      console.error("Circle selection failed", error);
+      renderMessages();
+    }
+  } else {
+    renderMessages();
+  }
   syncCircleState();
+});
+
+copyCircleInvite.addEventListener("click", async () => {
+  const code = copyCircleInvite.dataset.inviteCode;
+  if (!code) return;
+  const inviteUrl = `${window.location.origin}${window.location.pathname}?circle=${encodeURIComponent(code)}#circles`;
+  try {
+    await navigator.clipboard.writeText(inviteUrl);
+    showToast("Circle invite link copied");
+  } catch {
+    window.prompt("Copy this circle invite link", inviteUrl);
+  }
 });
 
 document.querySelector("#circle-shortcut").addEventListener("click", () => {
@@ -707,7 +739,7 @@ createCircleForm.addEventListener("submit", async (event) => {
   if (window.sidequestBackend?.enabled) {
     try {
       const created = await window.sidequestBackend.createCircle(name);
-      circle = { ...circle, id: created.id };
+      circle = { ...circle, id: created.id, inviteCode: created.invite_code, shared: true };
     } catch (error) {
       console.error("Supabase circle creation failed", error);
       showToast("Created on this device, but live sync is unavailable");
@@ -722,7 +754,7 @@ createCircleForm.addEventListener("submit", async (event) => {
   createCircleForm.reset();
   circleDialog.close();
   item.click();
-  showToast(`${name} created`);
+  showToast(circle.inviteCode ? `${name} created. Copy its invite link to bring friends in.` : `${name} created`);
 });
 
 document.querySelector("#add-friend-button").addEventListener("click", () => {

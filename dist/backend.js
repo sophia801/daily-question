@@ -37,16 +37,16 @@
   }
 
   async function findCircle() {
-    const savedCircle = localStorage.getItem("sidequest-supabase-circle-id");
-    if (savedCircle) {
-      circleId = savedCircle;
-      return;
-    }
-
     const inviteFromUrl = new URLSearchParams(window.location.search).get("circle");
     if (inviteFromUrl) {
       await joinCircle(inviteFromUrl);
       window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash || "#today"}`);
+      return;
+    }
+
+    const savedCircle = localStorage.getItem("sidequest-supabase-circle-id");
+    if (savedCircle) {
+      circleId = savedCircle;
       return;
     }
 
@@ -168,6 +168,17 @@
     return circleId;
   }
 
+  async function selectCircle(id) {
+    if (!configured) return null;
+    circleId = id;
+    localStorage.setItem("sidequest-supabase-circle-id", circleId);
+    const { data, error } = await client.from("circles")
+      .select("invite_code").eq("id", circleId).single();
+    if (error) throw error;
+    inviteCode = data.invite_code;
+    return { id: circleId, inviteCode };
+  }
+
   async function saveAnswer(mode, body, visibility) {
     if (!configured) return null;
     const today = new Date().toISOString().slice(0, 10);
@@ -211,6 +222,7 @@
     init,
     createCircle,
     joinCircle,
+    selectCircle,
     sendFriendRequest,
     updateUsername,
     loadFriends,

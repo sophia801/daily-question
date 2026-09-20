@@ -9,6 +9,9 @@ const revealedState = document.querySelector("#revealed-state");
 const yourAnswer = document.querySelector("#your-answer");
 const privacyInputs = document.querySelectorAll('input[name="privacy"]');
 const privacyResult = document.querySelector("#privacy-result");
+const circlePrivacyLabel = document.querySelector("#circle-privacy-label");
+const circlePrivacyTitle = document.querySelector("#circle-privacy-title");
+const circlePrivacyHint = document.querySelector("#circle-privacy-hint");
 const questionHeading = document.querySelector("#question-heading");
 const dailyLabel = document.querySelector("#daily-label");
 const worldNote = document.querySelector("#world-note");
@@ -22,6 +25,7 @@ const circleStreakCount = document.querySelector("#circle-streak-count");
 const circleStreakMeter = document.querySelector("#circle-streak-meter");
 const conversationPrompt = document.querySelector("#conversation-prompt");
 const modeButtons = document.querySelectorAll(".choice-button");
+const questionColumn = document.querySelector(".question-column");
 const toast = document.querySelector("#toast");
 const todaySections = document.querySelectorAll(".today-only");
 const historyView = document.querySelector("#history-view");
@@ -327,6 +331,9 @@ function renderMode(mode) {
     button.setAttribute("aria-pressed", String(selected));
   });
 
+  questionColumn.classList.toggle("mode-fun", mode === "fun");
+  questionColumn.classList.toggle("mode-reflective", mode === "reflective");
+
   dailyLabel.textContent = content.label;
   questionHeading.textContent = content.question;
   worldNote.textContent = content.note;
@@ -473,6 +480,11 @@ function syncCircleState() {
   document.querySelector("#today-room").hidden = !hasCircles;
   const circlePrivacy = form.querySelector('input[value="friends"]');
   circlePrivacy.disabled = !hasCircles || answerInput.disabled;
+  const activeItem = activeCircleId ? circleList.querySelector(`[data-circle="${activeCircleId}"]`) : null;
+  circlePrivacyTitle.textContent = activeItem ? `Share to ${activeItem.dataset.name}` : "My circle";
+  circlePrivacyHint.textContent = hasCircles
+    ? "Mutual reveal with this friend group."
+    : "Create a circle to unlock this.";
 }
 
 function addFriendRow(friend) {
@@ -563,7 +575,7 @@ function renderHistory(date) {
     heading.textContent = date === todayKey ? "Nothing chosen yet today." : "A quiet day.";
     const message = document.createElement("p");
     message.className = "history-empty";
-    message.textContent = date === todayKey ? "Choose either question to keep your streak going." : "You did not answer a sparKIT question on this date.";
+    message.textContent = date === "2026-09-19" ? "Choose either question to keep your streak going." : "You did not answer a sparKIT question on this date.";
     fragment.append(heading, message);
   } else {
     records.forEach((record, index) => {
@@ -669,6 +681,13 @@ document.querySelector("#new-circle-button").addEventListener("click", () => {
 });
 
 document.querySelector("#empty-create-circle").addEventListener("click", () => {
+  document.querySelector("#new-circle-button").click();
+});
+
+circlePrivacyLabel.addEventListener("click", (event) => {
+  if (!circlePrivacyLabel.querySelector('input[name="privacy"]').disabled) return;
+  event.preventDefault();
+  window.location.hash = "#circles";
   document.querySelector("#new-circle-button").click();
 });
 

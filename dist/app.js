@@ -424,7 +424,7 @@ async function startBackend() {
     friendSearchForm.elements.username.disabled = false;
     friendSearchForm.querySelector('button[type="submit"]').disabled = false;
     friendSearchForm.elements.username.required = true;
-    friendSetupNote.textContent = "Search for the exact sparKIT username. They can accept from their Friends page.";
+    if (friendSetupNote) friendSetupNote.textContent = "Search for the exact sparKIT username. They can accept from their Friends page.";
     profileUsername.value = state.username;
     document.querySelector("#your-handle").textContent = `Your username: @${state.username}`;
     const sharedFriends = await window.sidequestBackend.loadFriends();

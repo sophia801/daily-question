@@ -273,6 +273,7 @@ h1 {
 .streak-card-heading strong { font-family: Georgia, "Times New Roman", serif; font-size: 1.3rem; font-weight: 600; white-space: nowrap; }
 .streak-kicker { font-size: 0.72rem; font-weight: 900; text-transform: uppercase; white-space: nowrap; }
 .streak-card p { min-height: 34px; margin: 8px 0 12px; color: #5f6863; font-size: 0.78rem; line-height: 1.35; }
+.streak-card-heading + .streak-meter { margin-top: 12px; }
 .streak-meter { height: 7px; overflow: hidden; border: 1px solid var(--ink); border-radius: 2px; background: rgba(255, 255, 255, 0.65); }
 .streak-meter span { display: block; width: 50%; height: 100%; background: var(--berry); transition: width 220ms ease; }
 .threshold-meter { position: relative; }

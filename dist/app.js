@@ -16,9 +16,7 @@ const questionHeading = document.querySelector("#question-heading");
 const dailyLabel = document.querySelector("#daily-label");
 const worldNote = document.querySelector("#world-note");
 const dailyDate = document.querySelector("#daily-date");
-const personalStreakStatus = document.querySelector("#personal-streak-status");
 const personalStreakMeter = document.querySelector("#personal-streak-meter");
-const groupStreakStatus = document.querySelector("#group-streak-status");
 const groupStreakMeter = document.querySelector("#group-streak-meter");
 const circleStreakCopy = document.querySelector("#circle-streak-copy");
 const circleStreakCount = document.querySelector("#circle-streak-count");
@@ -267,14 +265,7 @@ function renderStreaks() {
   const threshold = Math.ceil(groupTotal * 0.5);
   const streakSecured = groupAnswers >= threshold;
 
-  personalStreakStatus.textContent = completed
-    ? "Kept for today. One answer was enough."
-    : "Answer either question to keep it going.";
   personalStreakMeter.style.width = completed ? "100%" : "72%";
-
-  groupStreakStatus.textContent = streakSecured
-    ? `Streak secured · ${groupAnswers} of ${groupTotal} answered today.`
-    : `${groupAnswers} of ${threshold} needed to secure the streak.`;
   groupStreakMeter.style.width = `${(groupAnswers / groupTotal) * 100}%`;
   circleStreakCopy.textContent = streakSecured
     ? "Half the circle answered, so today's streak is safe. Either question counts."

@@ -208,7 +208,7 @@ h1 {
   font-size: 0.78rem;
   font-weight: 900;
 }
-.face img { width: 100%; height: 100%; object-fit: cover; }
+.face img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 .face-yellow { background: var(--acid); }
 .face-blue { background: var(--blue); }
 .face-pink { background: var(--pink); }

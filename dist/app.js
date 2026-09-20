@@ -45,6 +45,7 @@ const profileForm = document.querySelector("#profile-form");
 const profileUsername = document.querySelector("#profile-username");
 const friendSetupNote = document.querySelector("#friend-setup-note");
 const copyCircleInvite = document.querySelector("#copy-circle-invite");
+const answerList = revealedState.querySelector(".answer-list");
 
 const privacyLabels = {
   private: "Just me",
@@ -221,6 +222,7 @@ try {
 }
 
 let activeMode = "reflective";
+let sharedBackendReady = false;
 
 function storageKey(type, mode = activeMode) {
   return `sidequest-${type}-${todayKey}-${mode}`;
@@ -311,6 +313,28 @@ function showCompleted(answer, privacy) {
   privacyResult.textContent = circleShareLabel(privacy);
   privateState.hidden = true;
   revealedState.hidden = false;
+  refreshSharedAnswers().catch((error) => console.error("Shared answers failed", error));
+}
+
+async function refreshSharedAnswers() {
+  if (!sharedBackendReady || !activeCircleId || getSaved(activeMode).privacy !== "friends") return;
+  const answers = await window.sidequestBackend.loadCircleAnswers(activeMode, todayKey);
+  answerList.querySelectorAll(".friend-answer:not(.yours)").forEach((item) => item.remove());
+  answers.filter((answer) => !answer.mine).forEach((answer, index) => {
+    const item = document.createElement("article");
+    item.className = "friend-answer";
+    const avatar = document.createElement("span");
+    avatar.className = `face ${["face-yellow", "face-blue", "face-pink"][index % 3]}`;
+    avatar.textContent = answer.name.charAt(0).toUpperCase();
+    const copy = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = answer.name;
+    const body = document.createElement("p");
+    body.textContent = answer.body;
+    copy.append(name, body);
+    item.append(avatar, copy);
+    answerList.append(item);
+  });
 }
 
 function renderMode(mode) {
@@ -421,6 +445,7 @@ async function startBackend() {
   }
   try {
     const state = await window.sidequestBackend.init();
+    sharedBackendReady = true;
     friendSearchForm.elements.username.disabled = false;
     friendSearchForm.querySelector('button[type="submit"]').disabled = false;
     friendSearchForm.elements.username.required = true;
@@ -431,6 +456,16 @@ async function startBackend() {
     friendsGrid.replaceChildren();
     createCircleForm.querySelector(".friend-picker").replaceChildren(createCircleForm.querySelector(".friend-picker legend"));
     sharedFriends.forEach(addFriendRow);
+    state.circles.forEach((sharedCircle) => {
+      if (circleList.querySelector(`[data-circle="${sharedCircle.id}"]`)) return;
+      circleList.append(makeCircleListItem({
+        id: sharedCircle.id,
+        name: sharedCircle.name,
+        members: [],
+        inviteCode: sharedCircle.invite_code,
+        shared: true,
+      }));
+    });
     if (state.circleId) {
       activeCircleId = state.circleId;
       circleMessages[activeCircleId] ||= [];
@@ -440,6 +475,7 @@ async function startBackend() {
         item.click();
       }
       await refreshSharedMessages();
+      await refreshSharedAnswers();
       window.sidequestBackend.subscribeToMessages(() => refreshSharedMessages().catch(console.error));
     }
   } catch (error) {
@@ -671,6 +707,7 @@ circleList.addEventListener("click", async (event) => {
     try {
       await window.sidequestBackend.selectCircle(activeCircleId);
       await refreshSharedMessages();
+      await refreshSharedAnswers();
       window.sidequestBackend.subscribeToMessages(() => refreshSharedMessages().catch(console.error));
     } catch (error) {
       console.error("Circle selection failed", error);
@@ -738,7 +775,7 @@ createCircleForm.addEventListener("submit", async (event) => {
   let circle = { id: `circle-${Date.now()}`, name, members };
   if (window.sidequestBackend?.enabled) {
     try {
-      const created = await window.sidequestBackend.createCircle(name);
+      const created = await window.sidequestBackend.createCircle(name, members);
       circle = { ...circle, id: created.id, inviteCode: created.invite_code, shared: true };
     } catch (error) {
       console.error("Supabase circle creation failed", error);
@@ -833,7 +870,15 @@ form.addEventListener("submit", async (event) => {
   showToast(privacy === "private" ? "Saved just for you. Your streak is safe." : "Shared. Your streak is safe.");
   if (window.sidequestBackend?.enabled) {
     try {
-      await window.sidequestBackend.saveAnswer(activeMode, answer, privacy);
+      await window.sidequestBackend.saveAnswer(
+        activeMode,
+        answer,
+        privacy,
+        dailyModes[activeMode].question,
+        dailyModes[activeMode].followUp,
+        todayKey,
+      );
+      await refreshSharedAnswers();
     } catch (error) {
       console.error("Supabase answer failed", error);
       showToast("Saved here, but the shared answer did not sync");

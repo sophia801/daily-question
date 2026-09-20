@@ -11,7 +11,8 @@ mode until the two public Supabase values are configured.
 3. Open **SQL Editor** and run the migrations in order: first
    `supabase/migrations/001_sidequest.sql`, then
    `supabase/migrations/002_friends.sql`, then
-   `supabase/migrations/003_fix_circle_codes.sql`.
+   `supabase/migrations/003_fix_circle_codes.sql`, then
+   `supabase/migrations/004_shared_circles_and_answers.sql`.
 4. Open **Project Settings > API** and copy the project URL and publishable
    `anon` key. Never use the `service_role` key in this website.
 

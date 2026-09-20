@@ -77,7 +77,16 @@
       circleName = data?.name || null;
       inviteCode = data?.invite_code || inviteCode;
     }
-    return { enabled: true, userId: user.id, username, circleId, circleName, inviteCode };
+    const circles = await loadCircles();
+    return { enabled: true, userId: user.id, username, circleId, circleName, inviteCode, circles };
+  }
+
+  async function loadCircles() {
+    if (!configured) return [];
+    const { data, error } = await client.from("circle_members")
+      .select("circle_id,circles(id,name,invite_code)").order("joined_at");
+    if (error) throw error;
+    return data.map((membership) => membership.circles).filter(Boolean);
   }
 
   async function sendFriendRequest(targetUsername) {
@@ -147,9 +156,15 @@
     return data;
   }
 
-  async function createCircle(name) {
+  async function createCircle(name, members = []) {
     if (!configured) return null;
-    const { data, error } = await client.rpc("create_circle", { circle_name: name });
+    let { data, error } = await client.rpc("create_circle_with_members", {
+      circle_name: name,
+      member_usernames: members,
+    });
+    if (error?.code === "PGRST202") {
+      ({ data, error } = await client.rpc("create_circle", { circle_name: name }));
+    }
     if (error) throw error;
     const created = data[0];
     circleId = created.id;
@@ -179,16 +194,37 @@
     return { id: circleId, inviteCode };
   }
 
-  async function saveAnswer(mode, body, visibility) {
+  async function saveAnswer(mode, body, visibility, question, followUp, answerDate) {
     if (!configured) return null;
-    const today = new Date().toISOString().slice(0, 10);
-    const { data: question, error: questionError } = await client
-      .from("questions").select("id").eq("question_date", today).eq("mode", mode).single();
-    if (questionError) throw questionError;
-    const payload = { question_id: question.id, user_id: user.id, circle_id: circleId, body, visibility };
-    const { data, error } = await client.from("answers").upsert(payload, { onConflict: "question_id,user_id" }).select().single();
+    const { data, error } = await client.rpc("save_daily_answer", {
+      answer_date: answerDate,
+      answer_mode: mode,
+      question_body: question,
+      question_follow_up: followUp,
+      answer_body: body,
+      answer_visibility: visibility,
+      target_circle: visibility === "friends" ? circleId : null,
+    });
     if (error) throw error;
     return data;
+  }
+
+  async function loadCircleAnswers(mode, answerDate) {
+    if (!configured || !circleId) return [];
+    const { data: question, error: questionError } = await client.from("questions")
+      .select("id").eq("question_date", answerDate).eq("mode", mode).maybeSingle();
+    if (questionError) throw questionError;
+    if (!question) return [];
+    const { data, error } = await client.from("answers")
+      .select("id,user_id,body,profiles(display_name,username)")
+      .eq("question_id", question.id).eq("circle_id", circleId).order("created_at");
+    if (error) throw error;
+    return data.map((answer) => ({
+      id: answer.id,
+      body: answer.body,
+      mine: answer.user_id === user.id,
+      name: answer.user_id === user.id ? "You" : (answer.profiles?.display_name || answer.profiles?.username || "Friend"),
+    }));
   }
 
   async function loadMessages() {
@@ -220,6 +256,7 @@
   window.sidequestBackend = {
     enabled: configured,
     init,
+    loadCircles,
     createCircle,
     joinCircle,
     selectCircle,
@@ -228,6 +265,7 @@
     loadFriends,
     acceptFriendRequest,
     saveAnswer,
+    loadCircleAnswers,
     loadMessages,
     sendMessage,
     subscribeToMessages,

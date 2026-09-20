@@ -21,7 +21,7 @@
       <header class="topbar">
         <a class="brand" href="#" aria-label="sparKIT home">
           <img class="brand-mark" src="./brand-mark.webp" alt="" aria-hidden="true" />
-          <span>sparKIT</span>
+          <span>spar<span class="brand-kit">KIT</span></span>
         </a>
         <div class="world-pulse" aria-label="Worldwide daily question">
           <span aria-hidden="true"></span>
@@ -119,36 +119,7 @@
 
           <aside class="reveal-panel" id="reveal-panel" aria-live="polite">
             <div class="locked-state" id="locked-state">
-              <svg class="journal-illustration" viewBox="0 0 420 250" role="img" aria-label="A cat writing an answer in a notebook">
-                <path class="illustration-line" d="M53 218h314" />
-
-                <path class="illustration-line" d="M116 176c-35-4-45 23-25 34 18 10 42-4 34-20-5-10-21-9-26-1" />
-                <path class="illustration-fill-pink" d="M132 128c21-22 67-20 87 7 13 18 14 51 4 76h-105c-7-31-3-64 14-83Z" />
-                <path class="illustration-fill-yellow" d="m126 65 25 15c11-7 29-7 41 0l26-15-6 38c5 30-14 51-41 51s-47-21-42-51z" />
-                <path class="illustration-line" d="m126 65 25 15c11-7 29-7 41 0l26-15-6 38c5 30-14 51-41 51s-47-21-42-51z" />
-                <path class="illustration-detail-pink" d="m132 75 17 11-20 10zM211 75l-17 11 19 10z" />
-                <path class="illustration-line" d="M144 101c4-5 11-5 15 0M184 101c4-5 11-5 15 0M168 114l5 4-5 4M168 122c-6 6-13 5-17 1M173 122c6 6 13 5 17 1M136 113l-31-5M136 122l-32 5M206 113l30-5M205 122l32 5M158 82l4 9M171 79v11M185 82l-4 9" />
-                <circle class="illustration-ink" cx="151" cy="103" r="3" />
-                <circle class="illustration-ink" cx="192" cy="103" r="3" />
-                <circle class="illustration-detail-pink" cx="145" cy="116" r="4" />
-                <circle class="illustration-detail-pink" cx="198" cy="116" r="4" />
-                <path class="illustration-line" d="M147 143c-15 9-22 26-18 43M201 142c16 7 24 23 22 41" />
-                <path class="illustration-line" d="M150 143c13 8 29 9 43 0M158 147l3 10M184 147l-3 10" />
-
-                <path class="illustration-fill-paper" d="m105 172 65-10 7 47-67 8z" />
-                <path class="illustration-fill-paper" d="m170 162 67 10-5 45-55-8z" />
-                <path class="illustration-line" d="M170 162l7 47M119 184l37-6M121 195l40-6M190 178l33 5M190 189l29 5" />
-                <path class="illustration-fill-yellow" d="M191 160c8-4 17 1 18 9 1 7-6 13-14 11l-18-5 3-11z" />
-                <path class="illustration-fill-pink" d="m199 166 28-31 7 6-27 32z" />
-                <path class="illustration-line" d="m227 135 8-7-1 13" />
-
-                <path class="illustration-fill-blue" d="M282 171h48l-5 45h-38z" />
-                <path class="illustration-line" d="M306 171c-1-25 5-40 18-52M307 157c-9-17-19-23-31-19M312 145c11-14 23-18 35-12" />
-                <path class="illustration-fill-green" d="M270 136c11-8 23-6 31 6-12 7-23 5-31-6ZM323 119c7-12 19-16 32-10-7 13-18 17-32 10Z" />
-
-                <path class="illustration-line" d="M75 83v22M64 94h22M337 62v19M327 72h20" />
-                <circle class="illustration-fill-green" cx="356" cy="91" r="8" />
-              </svg>
+              <img class="journal-illustration" src="./journal-illustration.webp" alt="A cat writing an answer at a desk" />
               <p class="eyebrow">Friends' answers</p>
               <h2>A little mystery first.</h2>
               <p>Share your own thought to reveal what your circle said. No one gets influenced by the first answer.</p>
@@ -179,7 +150,7 @@
 
               <div class="answer-list">
                 <article class="friend-answer yours">
-                  <span class="face face-green">You</span>
+                  <span class="face face-green" id="your-face">You</span>
                   <div><strong>You</strong><p id="your-answer"></p></div>
                 </article>
               </div>
@@ -348,7 +319,18 @@
           </header>
 
           <form class="profile-form" id="profile-form">
-            <div><label for="profile-username">Your username</label><small>This is how friends find you.</small></div>
+            <input type="file" id="profile-photo-input" accept="image/*" hidden />
+            <div class="profile-identity">
+              <button class="face face-green profile-photo-avatar" id="profile-photo-avatar" type="button" aria-label="Change profile photo">You</button>
+              <div>
+                <label for="profile-username">Your username</label>
+                <small>This is how friends find you.</small>
+                <div class="profile-photo-actions">
+                  <button class="text-button" id="change-photo-button" type="button">Change photo</button>
+                  <button class="text-button" id="remove-photo-button" type="button" hidden>Remove photo</button>
+                </div>
+              </div>
+            </div>
             <div><span aria-hidden="true">@</span><input id="profile-username" name="username" minlength="3" maxlength="24" pattern="[a-z0-9_]+" autocomplete="username" required /><button type="submit">Save</button></div>
           </form>
 

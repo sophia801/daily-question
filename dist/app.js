@@ -56,6 +56,11 @@ const circleAnswersHeading = document.querySelector("#circle-answers-heading");
 const answerGateLink = document.querySelector("#answer-gate-link");
 const profileForm = document.querySelector("#profile-form");
 const profileUsername = document.querySelector("#profile-username");
+const profilePhotoInput = document.querySelector("#profile-photo-input");
+const profilePhotoAvatar = document.querySelector("#profile-photo-avatar");
+const changePhotoButton = document.querySelector("#change-photo-button");
+const removePhotoButton = document.querySelector("#remove-photo-button");
+const yourFace = document.querySelector("#your-face");
 const friendSetupNote = document.querySelector("#friend-setup-note");
 const copyCircleInvite = document.querySelector("#copy-circle-invite");
 const answerList = revealedState.querySelector(".answer-list");
@@ -195,6 +200,56 @@ try {
   addedFriends = JSON.parse(localStorage.getItem("sparkit-added-friends") || "[]");
 } catch {
   addedFriends = [];
+}
+
+let yourPhoto = localStorage.getItem("sparkit-pfp") || null;
+
+function applyFace(el, fallbackText) {
+  if (!el) return;
+  if (yourPhoto) {
+    el.replaceChildren(Object.assign(document.createElement("img"), { src: yourPhoto, alt: "" }));
+  } else {
+    el.textContent = fallbackText;
+  }
+}
+
+function renderYourFaces() {
+  applyFace(yourFace, "You");
+  applyFace(profilePhotoAvatar, "You");
+  document.querySelectorAll('[data-room-messages] .room-message.mine .face').forEach((el) => applyFace(el, "You"));
+  removePhotoButton.hidden = !yourPhoto;
+}
+
+function setYourPhoto(dataUrl) {
+  yourPhoto = dataUrl;
+  if (dataUrl) localStorage.setItem("sparkit-pfp", dataUrl);
+  else localStorage.removeItem("sparkit-pfp");
+  renderYourFaces();
+}
+
+function readAndResizeImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Could not read that image"));
+      img.onload = () => {
+        const size = 160;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        const scale = Math.max(size / img.width, size / img.height);
+        const dx = (size - img.width * scale) / 2;
+        const dy = (size - img.height * scale) / 2;
+        ctx.drawImage(img, dx, dy, img.width * scale, img.height * scale);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 let activeMode = "reflective";
@@ -406,7 +461,8 @@ function renderCircleAnswers(answers) {
     item.className = `friend-answer${answer.mine ? " yours" : ""}`;
     const avatar = document.createElement("span");
     avatar.className = `face ${answer.mine ? "face-green" : ["face-yellow", "face-blue", "face-pink"][index % 3]}`;
-    avatar.textContent = answer.mine ? "You" : answer.name.charAt(0).toUpperCase();
+    if (answer.mine) applyFace(avatar, "You");
+    else avatar.textContent = answer.name.charAt(0).toUpperCase();
     const copy = document.createElement("div");
     const name = document.createElement("strong");
     name.textContent = answer.mine ? "You" : answer.name;
@@ -485,7 +541,8 @@ function makeMessage(message) {
   item.className = `room-message${message.author === "You" ? " mine" : ""}`;
   const avatar = document.createElement("span");
   avatar.className = `face ${message.color}`;
-  avatar.textContent = message.initial;
+  if (message.author === "You") applyFace(avatar, message.initial);
+  else avatar.textContent = message.initial;
   const bubble = document.createElement("div");
   bubble.className = "message-bubble";
   const author = document.createElement("strong");
@@ -1101,6 +1158,32 @@ friendSearchForm.addEventListener("submit", async (event) => {
   showToast(window.sidequestBackend?.enabled ? `Request sent to @${username}` : `@${username} added on this device`);
 });
 
+changePhotoButton.addEventListener("click", () => profilePhotoInput.click());
+profilePhotoAvatar.addEventListener("click", () => profilePhotoInput.click());
+
+profilePhotoInput.addEventListener("change", async () => {
+  const file = profilePhotoInput.files[0];
+  profilePhotoInput.value = "";
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    showToast("Choose an image file");
+    return;
+  }
+  try {
+    const dataUrl = await readAndResizeImage(file);
+    setYourPhoto(dataUrl);
+    showToast("Profile photo updated");
+  } catch (error) {
+    console.error("Photo update failed", error);
+    showToast("Could not use that image");
+  }
+});
+
+removePhotoButton.addEventListener("click", () => {
+  setYourPhoto(null);
+  showToast("Profile photo removed");
+});
+
 profileForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const username = profileUsername.value.trim().replace(/^@/, "").toLowerCase();
@@ -1179,5 +1262,6 @@ addedFriends.forEach(addFriendRow);
 if (circleList.firstElementChild) circleList.firstElementChild.click();
 syncCircleState();
 renderMessages();
+renderYourFaces();
 renderRoute();
 startBackend();

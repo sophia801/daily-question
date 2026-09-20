@@ -34,9 +34,6 @@
           <a href="#friends">Friends</a>
         </nav>
         <button class="group-switcher" id="circle-shortcut" type="button" aria-label="Open circles" hidden>
-          <span class="group-avatars" aria-hidden="true">
-            <span>SG</span><span>JK</span><span>AM</span>
-          </span>
           <span id="circle-shortcut-name">Your circle</span>
           <span aria-hidden="true">⌄</span>
         </button>
@@ -66,12 +63,6 @@
             </h1>
 
             <div class="status-row" id="today-circle-status" aria-label="Group participation" hidden>
-              <div class="response-faces" aria-hidden="true">
-                <span class="face face-yellow">J</span>
-                <span class="face face-blue">A</span>
-                <span class="face face-pink muted">M</span>
-                <span class="face face-green muted">You</span>
-              </div>
               <p><strong id="answer-count">—</strong> answered</p>
             </div>
 
@@ -294,16 +285,15 @@
                 <h2 id="circle-room-name">Your circle</h2>
               </div>
               <div class="circle-header-actions">
-                <div class="mini-faces" aria-label="Circle members"><span>You</span></div>
                 <button class="circle-invite-button" id="copy-circle-invite" type="button" hidden><span aria-hidden="true">↗</span> Invite</button>
               </div>
             </header>
 
             <section class="circle-streak-panel" aria-labelledby="circle-streak-heading">
               <div>
-                <p class="eyebrow">Circle streak <span class="streak-safe">Secured today</span></p>
+                <p class="eyebrow">Circle streak <span class="streak-safe" id="circle-streak-safe" hidden>Secured today</span></p>
                 <h3 id="circle-streak-heading">Today's group goal</h3>
-                <p id="circle-streak-copy">Half the circle answered, so today's streak is safe. Either question counts.</p>
+                <p id="circle-streak-copy">Answers from either daily question count toward the group goal.</p>
               </div>
               <div class="circle-streak-progress">
                 <span id="circle-streak-count">Waiting for answers</span>

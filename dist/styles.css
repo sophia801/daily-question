@@ -114,22 +114,6 @@ button { color: inherit; }
   cursor: pointer;
 }
 
-.group-avatars { display: flex; }
-.group-avatars span {
-  width: 29px;
-  height: 29px;
-  margin-right: -6px;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--acid);
-  font-size: 0.62rem;
-  font-weight: 900;
-}
-.group-avatars span:nth-child(2) { background: var(--blue); }
-.group-avatars span:nth-child(3) { background: var(--pink); margin-right: 0; }
-
 .today-layout {
   min-height: calc(100vh - 76px);
   display: grid;
@@ -227,7 +211,6 @@ h1 {
 }
 .status-row p { margin: 0; }
 
-.response-faces { display: flex; }
 .face {
   flex: 0 0 auto;
   width: 42px;
@@ -688,8 +671,6 @@ textarea:focus { box-shadow: inset 0 -3px 0 var(--acid); }
 .circle-streak-progress { display: grid; gap: 8px; }
 .circle-streak-progress > span { justify-self: end; font-size: 0.76rem; font-weight: 900; }
 .circle-streak-progress .streak-meter span { background: var(--berry); }
-.mini-faces { display: flex; }
-.mini-faces span { width: 34px; height: 34px; margin-left: -7px; border: 1px solid var(--ink); border-radius: 50%; display: grid; place-items: center; background: var(--paper); font-size: 0.62rem; font-weight: 850; }
 .room-question-strip { margin: 26px 0; padding: 18px 0; border-bottom: 1px solid #aebfca; display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; }
 .room-question-strip p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.25rem; }
 .view-answers-button { border: 0; padding: 0; background: transparent; color: var(--berry); font-size: 0.82rem; font-weight: 850; text-decoration: underline; cursor: pointer; }
@@ -836,7 +817,6 @@ textarea:focus { box-shadow: inset 0 -3px 0 var(--acid); }
 @media (max-width: 850px) {
   body { padding-bottom: 70px; }
   .topbar { min-height: 64px; padding: 10px 16px; }
-  .group-switcher > span:nth-child(2) { display: none; }
   .world-pulse { display: none; }
   .desktop-nav { display: none; }
   .today-layout { display: block; min-height: auto; }
@@ -910,7 +890,6 @@ textarea:focus { box-shadow: inset 0 -3px 0 var(--acid); }
   .circle-room-header { display: block; }
   .circle-header-actions { margin-top: 20px; justify-content: space-between; }
   .circle-streak-panel { grid-template-columns: 1fr; gap: 16px; }
-  .mini-faces { margin-top: 20px; padding-left: 7px; }
   .room-question-strip { grid-template-columns: 1fr auto; }
   .room-question-strip .history-badge { grid-column: 1 / -1; width: fit-content; }
   .answer-gate { align-items: flex-start; flex-direction: column; gap: 10px; }

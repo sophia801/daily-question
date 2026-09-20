@@ -25,6 +25,7 @@ const groupStreakMeter = document.querySelector("#group-streak-meter");
 const circleStreakCopy = document.querySelector("#circle-streak-copy");
 const circleStreakCount = document.querySelector("#circle-streak-count");
 const circleStreakMeter = document.querySelector("#circle-streak-meter");
+const circleStreakSafe = document.querySelector("#circle-streak-safe");
 const conversationPrompt = document.querySelector("#conversation-prompt");
 const modeButtons = document.querySelectorAll(".choice-button");
 const questionColumn = document.querySelector(".question-column");
@@ -160,47 +161,6 @@ const dailyModes = {
   },
 };
 
-const demoHistoryRecords = {
-  "2026-09-18": [
-    { mode: "fun", privacy: "friends", question: "What tiny inconvenience would you permanently delete from the world?", answer: "Fitted sheets. No object should be that smug and that hard to fold.", shared: "Shared with friends · 3 replies" },
-  ],
-  "2026-09-16": [
-    { mode: "reflective", privacy: "private", question: "What is something you are learning to be more patient with?", answer: "Not having every part of my future figured out at once.", shared: "Saved just for you" },
-  ],
-  "2026-09-15": [
-    { mode: "fun", privacy: "friends", question: "What would your extremely specific superpower be?", answer: "Always choosing the fastest grocery-store line.", shared: "Shared with friends" },
-    { mode: "reflective", privacy: "friends", question: "Where have you felt most like yourself recently?", answer: "Cooking with everyone in the kitchen, even when nobody is helping.", shared: "Shared with friends · 4 replies" },
-  ],
-  "2026-09-13": [
-    { mode: "reflective", privacy: "friends", question: "What do you wish your friends asked you about more often?", answer: "The little creative projects I keep almost starting.", shared: "Shared with friends · 2 replies" },
-  ],
-  "2026-09-12": [
-    { mode: "fun", privacy: "friends", question: "Which fictional home would be the worst place to have roommates?", answer: "The Batcave. Damp, loud, and Bruce would label everything.", shared: "Shared with friends · 5 replies" },
-  ],
-  "2026-09-11": [
-    { mode: "fun", privacy: "friends", question: "What food opinion would get you voted out of the group?", answer: "Cold pizza is better than fresh pizza.", shared: "Shared with friends · 7 replies" },
-  ],
-  "2026-09-10": [
-    { mode: "reflective", privacy: "private", question: "What has been taking more energy than you expected?", answer: "Keeping up with everyone when I actually need one quiet night.", shared: "Saved just for you" },
-  ],
-  "2026-09-08": [
-    { mode: "fun", privacy: "friends", question: "What should our group be banned from doing unsupervised?", answer: "Planning trips after midnight.", shared: "Shared with friends · 6 replies" },
-    { mode: "reflective", privacy: "friends", question: "What makes you feel cared for without anyone saying anything?", answer: "When someone remembers the snack I like.", shared: "Shared with friends · 4 replies" },
-  ],
-  "2026-09-07": [
-    { mode: "fun", privacy: "friends", question: "What is our group chat's unofficial emergency?", answer: "Someone spotting a chair left on the sidewalk.", shared: "Shared with friends · 4 replies" },
-  ],
-  "2026-09-06": [
-    { mode: "fun", privacy: "private", question: "What is the most dramatic way to leave a boring party?", answer: "Receive a fake call from the moon.", shared: "Saved just for you" },
-  ],
-  "2026-09-05": [
-    { mode: "reflective", privacy: "friends", question: "What is one part of your week you want to protect?", answer: "Sunday mornings with nowhere to be.", shared: "Shared with friends · 3 replies" },
-  ],
-  "2026-09-03": [
-    { mode: "fun", privacy: "friends", question: "What would your warning label say?", answer: "Will reorganize your bookshelf without permission.", shared: "Shared with friends · 4 replies" },
-  ],
-};
-
 let historyRecords;
 try {
   historyRecords = JSON.parse(localStorage.getItem("sparkit-answer-history-v1") || "{}") || {};
@@ -314,6 +274,7 @@ function renderCircleStats() {
     circleStreakCopy.textContent = "Answers from either daily question count toward the group goal.";
     circleStreakCount.textContent = "Waiting for answers";
     circleStreakMeter.style.width = "0%";
+    circleStreakSafe.hidden = true;
     todayRoomMembers.textContent = "Circle";
     return;
   }
@@ -329,6 +290,7 @@ function renderCircleStats() {
     : `${Math.max(0, threshold - answeredCount)} more needed to reach 50% today.`;
   circleStreakCount.textContent = `${answeredCount} / ${memberCount} · ${threshold} needed`;
   circleStreakMeter.style.width = `${percent}%`;
+  circleStreakSafe.hidden = !streakSecured;
   todayRoomMembers.textContent = `${memberCount} ${memberCount === 1 ? "member" : "members"}`;
 }
 

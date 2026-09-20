@@ -220,14 +220,6 @@ h1 {
   letter-spacing: 0;
 }
 
-.world-note {
-  max-width: 620px;
-  margin: 22px 0 0;
-  color: #5f6863;
-  font-size: 1rem;
-  line-height: 1.55;
-}
-
 .status-row {
   justify-content: flex-start;
   margin: 34px 0;

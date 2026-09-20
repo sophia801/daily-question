@@ -14,7 +14,6 @@ const circlePrivacyTitle = document.querySelector("#circle-privacy-title");
 const circlePrivacyHint = document.querySelector("#circle-privacy-hint");
 const questionHeading = document.querySelector("#question-heading");
 const dailyLabel = document.querySelector("#daily-label");
-const worldNote = document.querySelector("#world-note");
 const dailyDate = document.querySelector("#daily-date");
 const personalStreakMeter = document.querySelector("#personal-streak-meter");
 const groupStreakMeter = document.querySelector("#group-streak-meter");
@@ -134,18 +133,16 @@ const funToday = questionForToday(funQuestions, "fun");
 const dailyModes = {
   fun: {
     shortLabel: "Fun question",
-    label: "Today's worldwide fun question",
+    label: "Fun",
     question: funToday.question,
-    note: "A playful prompt everyone gets today. Go with your first instinct.",
     answerLabel: "Your answer",
     placeholder: "The more specific, the better...",
     followUp: funToday.followUp,
   },
   reflective: {
     shortLabel: "Reflective question",
-    label: "Today's worldwide reflective question",
+    label: "Reflective",
     question: reflectiveToday.question,
-    note: "Take a moment with it. A specific, honest answer is enough.",
     answerLabel: "Your reflection",
     placeholder: "A person, a habit, a place, a tiny moment...",
     followUp: reflectiveToday.followUp,
@@ -332,7 +329,6 @@ function renderMode(mode) {
 
   dailyLabel.textContent = content.label;
   questionHeading.textContent = content.question;
-  worldNote.textContent = content.note;
   answerLabel.textContent = content.answerLabel;
   answerInput.placeholder = content.placeholder;
   conversationPrompt.textContent = content.followUp;

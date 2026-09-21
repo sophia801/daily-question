@@ -47,6 +47,7 @@ function dailyPost(type = "both") {
   const embed = new EmbedBuilder()
     .setColor(0xc73434)
     .setTitle("Today's sparKIT")
+    .setURL(config.siteUrl)
     .setDescription("Answer one, then bring the conversation back here.")
     .setFooter({ text: questions.date.key });
 

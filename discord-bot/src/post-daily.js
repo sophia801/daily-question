@@ -15,6 +15,7 @@ const payload = {
   content: "Today's sparKIT is here. Answer one, then bring the conversation back here.",
   embeds: [{
     title: "Today's sparKIT",
+    url: siteUrl,
     color: 0xc73434,
     fields: [
       {

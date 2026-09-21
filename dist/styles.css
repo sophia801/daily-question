@@ -712,6 +712,19 @@ textarea:focus { box-shadow: inset 0 -3px 0 var(--acid); }
 .submission-footer { margin-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 .submission-footer small { color: #5f6863; line-height: 1.4; }
 .submission-footer button:disabled { opacity: 0.55; cursor: wait; }
+.question-voting { width: min(100%, 980px); margin-top: 64px; padding-top: 30px; border-top: 1px solid var(--ink); }
+.question-voting > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.question-voting h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 600; }
+.question-candidate-list { margin-top: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.question-candidate { min-width: 0; padding: 20px; border: 1px solid var(--ink); border-radius: 6px; background: var(--paper); }
+.question-candidate h3 { margin: 15px 0 8px; font-family: Georgia, "Times New Roman", serif; font-size: 1.45rem; font-weight: 600; line-height: 1.2; }
+.question-candidate > p { margin: 0; color: #5f6863; line-height: 1.45; }
+.candidate-actions { min-height: 42px; margin-top: 20px; display: flex; align-items: center; gap: 8px; }
+.candidate-actions small { color: #5f6863; font-weight: 750; }
+.vote-button { min-height: 40px; padding: 0 12px; border: 1px solid var(--ink); border-radius: 4px; background: white; color: var(--ink); font-weight: 850; cursor: pointer; }
+.vote-button.active { background: var(--ink); color: white; }
+.vote-button:disabled { opacity: 0.55; cursor: wait; }
+.candidate-empty { grid-column: 1 / -1; padding: 26px; border: 1px dashed #71817a; border-radius: 6px; color: #53615c; text-align: center; }
 .friends-header { margin-bottom: 34px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
 .friends-header h1 { font-size: clamp(2.7rem, 5.5vw, 5rem); }
 .friends-header p:last-child { color: #5f6863; }
@@ -897,6 +910,9 @@ textarea:focus { box-shadow: inset 0 -3px 0 var(--acid); }
   .submit-header h1 { font-size: 2.7rem; }
   .question-submission-form { padding: 20px; box-shadow: 4px 4px 0 var(--ink); }
   .submission-footer { align-items: stretch; flex-direction: column; }
+  .question-voting { margin-top: 48px; }
+  .question-voting > header { align-items: flex-start; }
+  .question-candidate-list { grid-template-columns: 1fr; }
   .friends-header { align-items: center; }
   .friends-header h1 { font-size: 2.7rem; }
   .friend-row { grid-template-columns: 44px 1fr auto; }

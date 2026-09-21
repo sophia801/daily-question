@@ -39,6 +39,8 @@ const circlesView = document.querySelector("#circles-view");
 const friendsView = document.querySelector("#friends-view");
 const submitView = document.querySelector("#submit-view");
 const questionSubmissionForm = document.querySelector("#question-submission-form");
+const questionCandidateList = document.querySelector("#question-candidate-list");
+const refreshQuestionVotes = document.querySelector("#refresh-question-votes");
 const circleDialog = document.querySelector("#circle-dialog");
 const createCircleForm = document.querySelector("#create-circle-form");
 const circleList = document.querySelector("#circle-list");
@@ -655,6 +657,7 @@ async function startBackend() {
     } catch (error) {
       console.error("Community question load failed", error);
     }
+    await refreshQuestionCandidates();
     friendSearchForm.elements.username.disabled = false;
     friendSearchForm.querySelector('button[type="submit"]').disabled = false;
     friendSearchForm.elements.username.required = true;
@@ -697,6 +700,75 @@ async function startBackend() {
   } catch (error) {
     console.error("Supabase startup failed", error);
     showToast("Shared mode is unavailable. Continuing locally.");
+  }
+}
+
+function renderQuestionCandidates(candidates) {
+  if (!candidates.length) {
+    const empty = document.createElement("p");
+    empty.className = "candidate-empty";
+    empty.textContent = "No questions are waiting for votes. Add the first one.";
+    questionCandidateList.replaceChildren(empty);
+    return;
+  }
+
+  questionCandidateList.replaceChildren(...candidates.map((candidate) => {
+    const item = document.createElement("article");
+    item.className = "question-candidate";
+    const mode = document.createElement("span");
+    mode.className = `history-badge ${candidate.mode}`;
+    mode.textContent = candidate.mode === "fun" ? "Fun" : "Reflective";
+    const question = document.createElement("h3");
+    question.textContent = candidate.body;
+    const followUp = document.createElement("p");
+    followUp.textContent = candidate.follow_up || "No follow-up added.";
+    const actions = document.createElement("div");
+    actions.className = "candidate-actions";
+    if (candidate.mine) {
+      const mine = document.createElement("small");
+      mine.textContent = `Your submission · ${candidate.yes_votes} Yes`;
+      actions.append(mine);
+    } else {
+      [[true, "Yes"], [false, "Not for me"]].forEach(([vote, label]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `vote-button${candidate.my_vote === vote ? " active" : ""}`;
+        button.textContent = vote ? `${label} · ${candidate.yes_votes}` : `${label} · ${candidate.no_votes}`;
+        button.addEventListener("click", () => castQuestionVote(candidate.id, vote, button));
+        actions.append(button);
+      });
+    }
+    item.append(mode, question, followUp, actions);
+    return item;
+  }));
+}
+
+async function refreshQuestionCandidates() {
+  if (!window.sidequestBackend?.enabled || !sharedBackendReady) return;
+  try {
+    renderQuestionCandidates(await window.sidequestBackend.loadQuestionCandidates());
+  } catch (error) {
+    console.error("Question voting load failed", error);
+    const empty = document.createElement("p");
+    empty.className = "candidate-empty";
+    empty.textContent = ["PGRST202", "PGRST205"].includes(error.code)
+      ? "Run Supabase migrations 008 and 009 to open voting."
+      : "Could not load community questions.";
+    questionCandidateList.replaceChildren(empty);
+  }
+}
+
+async function castQuestionVote(candidateId, voteYes, button) {
+  button.disabled = true;
+  try {
+    const result = await window.sidequestBackend.voteOnQuestion(candidateId, voteYes);
+    showToast(result?.status === "approved" ? "Added to future rotations!" : "Vote saved");
+    await refreshQuestionCandidates();
+  } catch (error) {
+    console.error("Question vote failed", error);
+    showToast(error.message || "Could not save your vote");
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -1271,7 +1343,8 @@ questionSubmissionForm.addEventListener("submit", async (event) => {
   try {
     await window.sidequestBackend.submitQuestion(mode, question, followUp);
     questionSubmissionForm.reset();
-    showToast("Submitted for review. Thank you!");
+    showToast("Submitted for community voting!");
+    await refreshQuestionCandidates();
   } catch (error) {
     console.error("Question submission failed", error);
     const setupNeeded = ["42P01", "PGRST202", "PGRST205"].includes(error.code);
@@ -1280,6 +1353,8 @@ questionSubmissionForm.addEventListener("submit", async (event) => {
     button.disabled = false;
   }
 });
+
+refreshQuestionVotes.addEventListener("click", refreshQuestionCandidates);
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();

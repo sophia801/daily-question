@@ -16,7 +16,8 @@ mode until the two public Supabase values are configured.
    `supabase/migrations/005_circle_daily_stats.sql`, then
    `supabase/migrations/006_fix_answer_saving.sql`, then
    `supabase/migrations/007_multi_circle_answer_sharing.sql`, then
-   `supabase/migrations/008_question_submissions.sql`.
+   `supabase/migrations/008_question_submissions.sql`, then
+   `supabase/migrations/009_community_question_voting.sql`.
 4. Open **Project Settings > API** and copy the project URL and publishable
    `anon` key. Never use the `service_role` key in this website.
 
@@ -57,12 +58,13 @@ Then commit `dist/config.js`, push, and redeploy the site.
 - Reviewed Fun and Reflective question submissions
 - Local-mode fallback when Supabase is unavailable
 
-## Review Submitted Questions
+## Community Question Voting
 
-Open **Table Editor > question_submissions**. After reading a submission, set
-its `status` to `approved` and `reviewed_at` to the current timestamp to include
-it in future rotations, or set `status` to `rejected`. Pending submissions are
-never shown as daily questions.
+Pending submissions appear on the Submit page. A signed-in user can vote Yes or
+Not for me, but cannot vote on their own submission. Three Yes votes with a
+positive majority approve a question and add it to future rotations. Three No
+votes with a non-positive result reject it. Pending questions never appear as
+daily questions.
 
 ## Next Integration Work
 

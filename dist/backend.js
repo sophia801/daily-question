@@ -318,6 +318,23 @@
     return data?.[0] || null;
   }
 
+  async function loadQuestionCandidates() {
+    if (!configured || !user) return [];
+    const { data, error } = await client.rpc("list_question_candidates");
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function voteOnQuestion(candidateId, voteYes) {
+    if (!configured || !user) throw new Error("Shared mode is unavailable");
+    const { data, error } = await client.rpc("vote_on_question", {
+      candidate_id: candidateId,
+      vote_yes: voteYes,
+    });
+    if (error) throw error;
+    return data?.[0] || null;
+  }
+
   async function loadMessages() {
     if (!configured || !circleId) return [];
     const { data, error } = await client
@@ -361,6 +378,8 @@
     loadPersonalStreak,
     submitQuestion,
     loadCommunityQuestion,
+    loadQuestionCandidates,
+    voteOnQuestion,
     loadMessages,
     sendMessage,
     subscribeToMessages,

@@ -347,9 +347,9 @@
 
         <section class="submit-view app-view" id="submit-view" hidden aria-labelledby="submit-heading">
           <header class="submit-header">
-            <p class="eyebrow">Question bank</p>
-            <h1 id="submit-heading">Submit a question</h1>
-            <p>Send something you would genuinely want everyone to answer. Approved questions join future daily rotations.</p>
+            <p class="eyebrow">Community question bank</p>
+            <h1 id="submit-heading">Suggest and vote</h1>
+            <p>Submit something worth discussing, then help choose what should join future daily rotations.</p>
           </header>
 
           <form class="question-submission-form" id="question-submission-form">
@@ -363,10 +363,20 @@
             <label for="submitted-follow-up">Optional follow-up</label>
             <input id="submitted-follow-up" name="followUp" maxlength="280" placeholder="A second prompt that gets the conversation moving" />
             <div class="submission-footer">
-              <small>Questions are reviewed before entering the rotation.</small>
+              <small>Three Yes votes add a question to future rotations.</small>
               <button class="primary-button" type="submit">Submit question</button>
             </div>
           </form>
+
+          <section class="question-voting" aria-labelledby="question-voting-heading">
+            <header>
+              <div><p class="eyebrow">Up for a vote</p><h2 id="question-voting-heading">Would you answer these?</h2></div>
+              <button class="text-button" id="refresh-question-votes" type="button">Refresh</button>
+            </header>
+            <div class="question-candidate-list" id="question-candidate-list">
+              <p class="candidate-empty">Loading community questions...</p>
+            </div>
+          </section>
         </section>
       </main>
 

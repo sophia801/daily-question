@@ -537,10 +537,9 @@ async function shareDailyResult() {
   const modeName = activeMode === "reflective" ? "reflective" : "fun";
   const shareUrl = `${window.location.origin}${window.location.pathname}#today`;
   const message = [
-    `I answered today's ${modeName} question on sparKIT:`,
+    `I answered today's ${modeName} sparKIT. What would you say?`,
     `“${dailyModes[activeMode].question}”`,
-    `My streak: ${personalStreakCount.textContent}`,
-    "Answer yours:",
+    "Your turn:",
   ].join("\n");
 
   if (navigator.share) {

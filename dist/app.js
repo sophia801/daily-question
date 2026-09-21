@@ -37,6 +37,8 @@ const calendarDays = document.querySelectorAll(".calendar-day[data-date]");
 const routeLinks = document.querySelectorAll('.desktop-nav a, .mobile-nav a[href^="#"]');
 const circlesView = document.querySelector("#circles-view");
 const friendsView = document.querySelector("#friends-view");
+const submitView = document.querySelector("#submit-view");
+const questionSubmissionForm = document.querySelector("#question-submission-form");
 const circleDialog = document.querySelector("#circle-dialog");
 const createCircleForm = document.querySelector("#create-circle-form");
 const circleList = document.querySelector("#circle-list");
@@ -635,6 +637,24 @@ async function startBackend() {
   try {
     const state = await window.sidequestBackend.init();
     sharedBackendReady = true;
+    try {
+      const [reflectiveCommunity, funCommunity] = await Promise.all([
+        window.sidequestBackend.loadCommunityQuestion("reflective", todayKey, reflectiveQuestions.length),
+        window.sidequestBackend.loadCommunityQuestion("fun", todayKey, funQuestions.length),
+      ]);
+      if (reflectiveCommunity) {
+        dailyModes.reflective.question = reflectiveCommunity.body;
+        dailyModes.reflective.followUp = reflectiveCommunity.follow_up || "What makes you say that?";
+      }
+      if (funCommunity) {
+        dailyModes.fun.question = funCommunity.body;
+        dailyModes.fun.followUp = funCommunity.follow_up || "Defend your answer to the group.";
+      }
+      renderMode(activeMode);
+      renderCircleMode(circleMode);
+    } catch (error) {
+      console.error("Community question load failed", error);
+    }
     friendSearchForm.elements.username.disabled = false;
     friendSearchForm.querySelector('button[type="submit"]').disabled = false;
     friendSearchForm.elements.username.required = true;
@@ -895,13 +915,14 @@ function updateHistoryCalendar() {
 }
 
 function renderRoute() {
-  const route = ["#history", "#circles", "#friends"].includes(window.location.hash)
+  const route = ["#history", "#circles", "#friends", "#submit"].includes(window.location.hash)
     ? window.location.hash
     : "#today";
   todaySections.forEach((section) => { section.hidden = route !== "#today"; });
   historyView.hidden = route !== "#history";
   circlesView.hidden = route !== "#circles";
   friendsView.hidden = route !== "#friends";
+  submitView.hidden = route !== "#submit";
   routeLinks.forEach((link) => {
     link.classList.toggle("active", link.getAttribute("href") === route);
   });
@@ -1229,6 +1250,33 @@ profileForm.addEventListener("submit", async (event) => {
   } catch (error) {
     console.error("Username update failed", error);
     showToast(error.code === "23505" ? "That username is already taken" : "Could not save that username");
+  }
+});
+
+questionSubmissionForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const question = questionSubmissionForm.elements.question.value.trim();
+  const followUp = questionSubmissionForm.elements.followUp.value.trim();
+  const mode = questionSubmissionForm.elements.mode.value;
+  if (question.length < 8) {
+    showToast("Write a little more before submitting");
+    return;
+  }
+  if (!window.sidequestBackend?.enabled || !sharedBackendReady) {
+    showToast("Question submissions need shared mode");
+    return;
+  }
+  const button = questionSubmissionForm.querySelector('button[type="submit"]');
+  button.disabled = true;
+  try {
+    await window.sidequestBackend.submitQuestion(mode, question, followUp);
+    questionSubmissionForm.reset();
+    showToast("Submitted for review. Thank you!");
+  } catch (error) {
+    console.error("Question submission failed", error);
+    showToast(error.code === "42P01" ? "Question submissions are not ready yet" : "Could not submit that question");
+  } finally {
+    button.disabled = false;
   }
 });
 

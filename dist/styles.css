@@ -695,6 +695,23 @@ textarea:focus { box-shadow: inset 0 -3px 0 var(--acid); }
 .message-reaction.active { border-color: var(--berry); background: #fff1ec; color: var(--berry); }
 
 .friends-view { padding: clamp(42px, 7vw, 90px) clamp(24px, 8vw, 120px) 110px; }
+.submit-view { min-height: calc(100vh - 76px); padding: clamp(42px, 7vw, 90px) clamp(24px, 8vw, 120px) 110px; background: var(--blue-mellow); }
+.submit-header { max-width: 760px; margin-bottom: 38px; }
+.submit-header h1 { font-size: clamp(2.8rem, 6vw, 5.2rem); }
+.submit-header > p:last-child { max-width: 620px; color: #53615c; line-height: 1.6; }
+.question-submission-form { width: min(100%, 760px); padding: 28px; border: 1px solid var(--ink); border-radius: 7px; background: var(--paper); box-shadow: 7px 7px 0 var(--ink); }
+.question-submission-form > label { display: block; margin: 22px 0 8px; font-size: 0.78rem; font-weight: 900; text-transform: uppercase; }
+.question-submission-form textarea { min-height: 130px; padding: 14px; border: 1px solid #8ca0aa; border-radius: 5px; background: white; font-family: inherit; font-size: 1.1rem; }
+.question-submission-form > input { width: 100%; min-height: 48px; padding: 0 13px; border: 1px solid #8ca0aa; border-radius: 5px; background: white; color: var(--ink); }
+.submission-mode { margin: 0; padding: 0; border: 0; display: flex; gap: 8px; }
+.submission-mode legend { width: 100%; margin-bottom: 9px; font-size: 0.78rem; font-weight: 900; text-transform: uppercase; }
+.submission-mode input { position: absolute; opacity: 0; pointer-events: none; }
+.submission-mode span { min-height: 44px; padding: 0 16px; border: 1px solid var(--ink); border-radius: 4px; display: grid; place-items: center; background: white; font-weight: 850; cursor: pointer; }
+.submission-mode input:checked + span { background: var(--ink); color: white; }
+.submission-mode input:focus-visible + span { outline: 3px solid var(--pink); outline-offset: 2px; }
+.submission-footer { margin-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.submission-footer small { color: #5f6863; line-height: 1.4; }
+.submission-footer button:disabled { opacity: 0.55; cursor: wait; }
 .friends-header { margin-bottom: 34px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
 .friends-header h1 { font-size: clamp(2.7rem, 5.5vw, 5rem); }
 .friends-header p:last-child { color: #5f6863; }
@@ -828,7 +845,7 @@ textarea:focus { box-shadow: inset 0 -3px 0 var(--acid); }
     inset: auto 0 0;
     z-index: 5;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     background: var(--paper);
     border-top: 1px solid var(--ink);
   }
@@ -876,6 +893,10 @@ textarea:focus { box-shadow: inset 0 -3px 0 var(--acid); }
   .next-ritual { grid-template-columns: 54px 1fr; }
   .next-ritual .text-button { grid-column: 2; justify-self: start; padding: 0; }
   .friends-view { padding: 34px 18px 100px; }
+  .submit-view { padding: 34px 18px 100px; }
+  .submit-header h1 { font-size: 2.7rem; }
+  .question-submission-form { padding: 20px; box-shadow: 4px 4px 0 var(--ink); }
+  .submission-footer { align-items: stretch; flex-direction: column; }
   .friends-header { align-items: center; }
   .friends-header h1 { font-size: 2.7rem; }
   .friend-row { grid-template-columns: 44px 1fr auto; }

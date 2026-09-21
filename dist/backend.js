@@ -291,6 +291,33 @@
     return streak;
   }
 
+  async function submitQuestion(mode, body, followUp) {
+    if (!configured || !user) throw new Error("Shared mode is unavailable");
+    const { data, error } = await client.from("question_submissions")
+      .insert({
+        user_id: user.id,
+        mode,
+        body,
+        follow_up: followUp || null,
+      })
+      .select("id,status")
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function loadCommunityQuestion(mode, answerDate, baseQuestionCount) {
+    if (!configured) return null;
+    const { data, error } = await client.rpc("get_community_question", {
+      target_date: answerDate,
+      question_mode: mode,
+      base_question_count: baseQuestionCount,
+    });
+    if (error?.code === "PGRST202") return null;
+    if (error) throw error;
+    return data?.[0] || null;
+  }
+
   async function loadMessages() {
     if (!configured || !circleId) return [];
     const { data, error } = await client
@@ -332,6 +359,8 @@
     loadCircleAnswers,
     loadCircleStats,
     loadPersonalStreak,
+    submitQuestion,
+    loadCommunityQuestion,
     loadMessages,
     sendMessage,
     subscribeToMessages,

@@ -32,6 +32,7 @@
           <a href="#circles">Circles</a>
           <a href="#history">History</a>
           <a href="#friends">Friends</a>
+          <a href="#submit">Submit</a>
         </nav>
       </header>
 
@@ -343,6 +344,30 @@
 
           <div class="friends-grid" id="friends-grid"></div>
         </section>
+
+        <section class="submit-view app-view" id="submit-view" hidden aria-labelledby="submit-heading">
+          <header class="submit-header">
+            <p class="eyebrow">Question bank</p>
+            <h1 id="submit-heading">Submit a question</h1>
+            <p>Send something you would genuinely want everyone to answer. Approved questions join future daily rotations.</p>
+          </header>
+
+          <form class="question-submission-form" id="question-submission-form">
+            <fieldset class="submission-mode">
+              <legend>Question type</legend>
+              <label><input type="radio" name="mode" value="reflective" checked /><span>Reflective</span></label>
+              <label><input type="radio" name="mode" value="fun" /><span>Fun</span></label>
+            </fieldset>
+            <label for="submitted-question">Your question</label>
+            <textarea id="submitted-question" name="question" rows="4" minlength="8" maxlength="280" placeholder="What would you want everyone to talk about?" required></textarea>
+            <label for="submitted-follow-up">Optional follow-up</label>
+            <input id="submitted-follow-up" name="followUp" maxlength="280" placeholder="A second prompt that gets the conversation moving" />
+            <div class="submission-footer">
+              <small>Questions are reviewed before entering the rotation.</small>
+              <button class="primary-button" type="submit">Submit question</button>
+            </div>
+          </form>
+        </section>
       </main>
 
       <nav class="mobile-nav" aria-label="Primary navigation">
@@ -350,6 +375,7 @@
         <a href="#circles"><span aria-hidden="true">◉</span>Circles</a>
         <a href="#history"><span aria-hidden="true">◫</span>History</a>
         <a href="#friends"><span aria-hidden="true">+</span>Friends</a>
+        <a href="#submit"><span aria-hidden="true">?</span>Submit</a>
       </nav>
 
       <dialog class="circle-dialog" id="circle-dialog">

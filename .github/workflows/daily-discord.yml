@@ -1,0 +1,29 @@
+name: Daily Discord question
+
+on:
+  schedule:
+    - cron: "7 9 * * *"
+      timezone: "America/New_York"
+  workflow_dispatch:
+
+jobs:
+  post-question:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: discord-bot
+    steps:
+      - name: Check out the question bank
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Post today's questions
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TIME_ZONE: America/New_York
+          SPARKIT_URL: https://sparkit.bidoophi.chatgpt.site/#today
+        run: node src/post-daily.js

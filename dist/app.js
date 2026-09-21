@@ -1274,7 +1274,8 @@ questionSubmissionForm.addEventListener("submit", async (event) => {
     showToast("Submitted for review. Thank you!");
   } catch (error) {
     console.error("Question submission failed", error);
-    showToast(error.code === "42P01" ? "Question submissions are not ready yet" : "Could not submit that question");
+    const setupNeeded = ["42P01", "PGRST202", "PGRST205"].includes(error.code);
+    showToast(setupNeeded ? "Question submissions need Supabase migration 008" : "Could not submit that question");
   } finally {
     button.disabled = false;
   }
